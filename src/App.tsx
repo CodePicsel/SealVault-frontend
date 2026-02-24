@@ -5,7 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SignUp } from './pages/SignUp';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoutes';
-import Dashboard from "./pages/Dashboard.tsx";
+import {Dashboard} from "./pages/Dashboard.tsx";
 
 const App: React.FC = () => {
     return (

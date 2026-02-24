@@ -4,7 +4,7 @@ export interface FileDoc {
     storageName: string;
     mimeType: string;
     size: number;
-    path: string;       // server side path or URL
+    url?: string | null;   // server side path or URL
     uploader?: string | null;
     createdAt: string;
 }
