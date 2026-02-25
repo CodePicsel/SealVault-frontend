@@ -4,11 +4,13 @@ import api from '../api/axios';
 import type { RegisterRequest, RegisterResponse } from '../types/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
 
 const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
 
 export const SignUp: React.FC = () => {
-    const navigate = useNavigate();   // ✅ MUST be inside component
+    const navigate = useNavigate();
     const { login } = useAuth();
 
     const [email, setEmail] = useState('');
@@ -31,68 +33,66 @@ export const SignUp: React.FC = () => {
             setLoading(true);
             const resp = await api.post<RegisterResponse>('/api/auth/register', payload);
 
+            // Save token + user
             login(resp.data.token, resp.data.user);
 
-            // redirect AFTER login
+            // redirect
             navigate('/', { replace: true });
-
         } catch (err: any) {
-            if (err?.response?.data?.message) {
-                setError(err.response.data.message);
-            } else {
-                setError('Registration failed.');
-            }
+            if (err?.response?.data?.message) setError(err.response.data.message);
+            else if (Array.isArray(err?.response?.data?.errors) && err.response.data.errors.length) setError(err.response.data.errors[0].msg);
+            else setError('Registration failed.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div style={{ maxWidth: 480, margin: '2rem auto' }}>
-            <h2>Create account</h2>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Email
-                    <input
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        type="email"
-                        required
-                        autoComplete="email"
-                    />
-                </label>
+        <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow">
+            <h2 className="text-2xl font-semibold mb-4">Create account</h2>
 
-                <label>
-                    Password
-                    <input
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        type="password"
-                        required
-                        minLength={8}
-                    />
-                </label>
+            <form onSubmit={handleSubmit} noValidate>
+                <Input
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                />
 
-                <label>
-                    Confirm password
-                    <input
-                        value={confirm}
-                        onChange={(e) => setConfirm(e.target.value)}
-                        type="password"
-                        required
-                        minLength={8}
-                    />
-                </label>
+                <Input
+                    label="Password"
+                    name="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                    required
+                />
 
-                {error && <div style={{ color: 'crimson' }}>{error}</div>}
+                <Input
+                    label="Confirm password"
+                    name="confirm"
+                    type="password"
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    autoComplete="new-password"
+                    required
+                />
 
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Creating…' : 'Create account'}
-                </button>
+                {error && <div className="text-sm text-red-600 mb-3">{error}</div>}
 
-                <div style={{ marginTop: 12 }}>
-                    <span>Already have an account? </span>
-                    <Link to="/login">Sign In</Link>
+                <div className="flex items-center justify-between">
+                    <Button type="submit" disabled={loading} variant="primary">
+                        {loading ? 'Creating…' : 'Create account'}
+                    </Button>
+
+                    <div className="text-sm text-gray-600">
+                        <span>Already have an account? </span>
+                        <Link to="/login" className="text-teal-600 hover:underline">Sign In</Link>
+                    </div>
                 </div>
             </form>
         </div>

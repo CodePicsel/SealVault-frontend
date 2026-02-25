@@ -4,6 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import type { User } from '../types/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
 
 type LoginResponse = { token: string; user: User };
 
@@ -25,7 +27,7 @@ export const Login: React.FC = () => {
             setLoading(true);
             const resp = await api.post<LoginResponse>('/api/auth/login', { email, password });
             login(resp.data.token, resp.data.user);
-            navigate('/', { replace: true }); // go to home or dashboard
+            navigate('/', { replace: true });
         } catch (err: any) {
             if (err?.response) {
                 const data = err.response.data;
@@ -41,42 +43,41 @@ export const Login: React.FC = () => {
     };
 
     return (
-        <div style={{ maxWidth: 480, margin: '2rem auto' }}>
-            <h2>Sign in</h2>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Email
-                    <input
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        type="email"
-                        required
-                        autoComplete="email"
-                        style={{ display: 'block', width: '100%', padding: 8, marginTop: 4 }}
-                    />
-                </label>
+        <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow">
+            <h2 className="text-2xl font-semibold mb-4">Sign in</h2>
 
-                <label style={{ marginTop: 12, display: 'block' }}>
-                    Password
-                    <input
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        type="password"
-                        required
-                        autoComplete="current-password"
-                        style={{ display: 'block', width: '100%', padding: 8, marginTop: 4 }}
-                    />
-                </label>
+            <form onSubmit={handleSubmit} noValidate>
+                <Input
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                />
 
-                {error && <div style={{ color: 'crimson', marginTop: 12 }}>{error}</div>}
+                <Input
+                    label="Password"
+                    name="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                />
 
-                <button type="submit" disabled={loading} style={{ marginTop: 16, padding: '10px 16px' }}>
-                    {loading ? 'Signing in…' : 'Sign in'}
-                </button>
+                {error && <div className="text-sm text-red-600 mb-3">{error}</div>}
 
-                <div style={{ marginTop: 12 }}>
-                    <span>Don't have an account? </span>
-                    <Link to="/signup">Create one</Link>
+                <div className="flex items-center justify-between">
+                    <Button type="submit" disabled={loading}>
+                        {loading ? 'Signing in…' : 'Sign in'}
+                    </Button>
+
+                    <div className="text-sm text-gray-600">
+                        <span>Don't have an account? </span>
+                        <Link to="/signup" className="text-teal-600 hover:underline">Create one</Link>
+                    </div>
                 </div>
             </form>
         </div>
