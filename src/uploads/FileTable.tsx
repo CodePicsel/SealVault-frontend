@@ -4,7 +4,7 @@ import type { FileDoc } from '../types/file';
 import { Button } from '../ui/Button';
 import api from '../api/axios';
 
-export const FileTable: React.FC<{ files: FileDoc[]; onDownloadError?: (msg:string)=>void }> = ({ files, onDownloadError }) => {
+export const FileTable: React.FC<{ files: FileDoc[]; onDownloadError?: (msg:string)=>void; onPreview?: (f: FileDoc)=>void }> = ({ files, onDownloadError, onPreview }) => {
     const handleDownload = async (f: FileDoc) => {
         try {
             if (f.url) { window.open(f.url, '_blank'); return; }
@@ -34,7 +34,8 @@ export const FileTable: React.FC<{ files: FileDoc[]; onDownloadError?: (msg:stri
                         <td className="p-3">{f.originalName}</td>
                         <td className="p-3">{(f.size/1024).toFixed(1)} KB</td>
                         <td className="p-3">{new Date(f.createdAt).toLocaleString()}</td>
-                        <td className="p-3">
+                        <td className="p-3 flex gap-2">
+                            <Button variant="ghost" size={"sm"} onClick={() => onPreview ? onPreview(f): handleDownload(f)}>Preview</Button>
                             <Button variant="ghost" size="sm" onClick={() => handleDownload(f)}>Download</Button>
                         </td>
                     </tr>
