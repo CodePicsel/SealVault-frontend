@@ -1,44 +1,40 @@
 // src/pages/Login.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import api from '../api/axios';
-import type { User } from '../types/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
-
+import { loginSchema, type LoginInput } from '../schemas/auth';
+import type { User } from '../types/auth';
 type LoginResponse = { token: string; user: User };
 
 export const Login: React.FC = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const {
+        control,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<LoginInput>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: { email: '', password: '' },
+    });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        if (!email || !password) return setError('Email and password are required.');
-
+    const onSubmit = async (values: LoginInput) => {
         try {
-            setLoading(true);
-            const resp = await api.post<LoginResponse>('/api/auth/login', { email, password });
+            const resp = await api.post<LoginResponse>('/api/auth/login', {
+                email: values.email,
+                password: values.password,
+            });
             login(resp.data.token, resp.data.user);
             navigate('/', { replace: true });
         } catch (err: any) {
-            if (err?.response) {
-                const data = err.response.data;
-                if (Array.isArray(data?.errors) && data.errors.length) setError(data.errors[0].msg);
-                else if (data?.message) setError(data.message);
-                else setError('Login failed.');
-            } else {
-                setError('Network error.');
-            }
-        } finally {
-            setLoading(false);
+            const message = err?.response?.data?.message ?? 'Login failed';
+            alert(message);
         }
     };
 
@@ -46,37 +42,47 @@ export const Login: React.FC = () => {
         <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow">
             <h2 className="text-2xl font-semibold mb-4">Sign in</h2>
 
-            <form onSubmit={handleSubmit} noValidate>
-                <Input
-                    label="Email"
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                <Controller
+                    control={control}
                     name="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
-                    required
+                    render={({ field }) => (
+                        <Input
+                            label="Email"
+                            {...field}
+                            type="email"
+                            autoComplete="email"
+                            required
+                            error={errors.email?.message ?? null}
+                        />
+                    )}
                 />
 
-                <Input
-                    label="Password"
+                <Controller
+                    control={control}
                     name="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    required
+                    render={({ field }) => (
+                        <Input
+                            label="Password"
+                            {...field}
+                            type="password"
+                            autoComplete="current-password"
+                            required
+                            error={errors.password?.message ?? null}
+                        />
+                    )}
                 />
 
-                {error && <div className="text-sm text-red-600 mb-3">{error}</div>}
-
-                <div className="flex items-center justify-between">
-                    <Button type="submit" disabled={loading}>
-                        {loading ? 'Signing in…' : 'Sign in'}
+                <div className="flex items-center justify-between mt-4">
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Signing in…' : 'Sign in'}
                     </Button>
 
                     <div className="text-sm text-gray-600">
                         <span>Don't have an account? </span>
-                        <Link to="/signup" className="text-teal-600 hover:underline">Create one</Link>
+                        <Link to="/signup" className="text-teal-600 hover:underline">
+                            Create one
+                        </Link>
                     </div>
                 </div>
             </form>

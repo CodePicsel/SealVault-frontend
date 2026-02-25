@@ -1,97 +1,100 @@
 // src/pages/SignUp.tsx
-import React, { useState } from 'react';
 import api from '../api/axios';
-import type { RegisterRequest, RegisterResponse } from '../types/auth';
+import type { RegisterResponse } from '../types/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
-
-const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+import {useForm, Controller} from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { registerSchema, type RegisterInput } from '../schemas/auth';
 
 export const SignUp: React.FC = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirm, setConfirm] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const {
+        control,
+        handleSubmit,
+        formState: {errors, isSubmitting},
+    } = useForm<RegisterInput>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: {email: '', password: '', confirm:''},
+    });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-
-        if (!validateEmail(email)) return setError('Please enter a valid email.');
-        if (password.length < 8) return setError('Password must be at least 8 characters.');
-        if (password !== confirm) return setError('Passwords do not match.');
-
-        const payload: RegisterRequest = { email, password };
-
-        try {
-            setLoading(true);
-            const resp = await api.post<RegisterResponse>('/api/auth/register', payload);
-
-            // Save token + user
+    const onSubmit = async (values: RegisterInput) =>{
+        try{
+            const resp = await api.post<RegisterResponse>('/api/auth/register', {
+                email: values.email,
+                password: values.password,
+            });
             login(resp.data.token, resp.data.user);
-
-            // redirect
-            navigate('/', { replace: true });
-        } catch (err: any) {
-            if (err?.response?.data?.message) setError(err.response.data.message);
-            else if (Array.isArray(err?.response?.data?.errors) && err.response.data.errors.length) setError(err.response.data.errors[0].msg);
-            else setError('Registration failed.');
-        } finally {
-            setLoading(false);
+            navigate('/', {replace: true});
+        }catch(err:any){
+            const message = err?.response?.data?.message ?? 'Registration failed.';
+            alert(message)
         }
-    };
-
+    }
     return (
         <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow">
             <h2 className="text-2xl font-semibold mb-4">Create account</h2>
 
-            <form onSubmit={handleSubmit} noValidate>
-                <Input
-                    label="Email"
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                <Controller
+                    control={control}
                     name="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
-                    required
+                    render={({ field }) => (
+                        <Input
+                            label="Email"
+                            {...field}
+                            type="email"
+                            autoComplete="email"
+                            required
+                            error={errors.email?.message ?? null}
+                        />
+                    )}
                 />
 
-                <Input
-                    label="Password"
+                <Controller
+                    control={control}
                     name="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="new-password"
-                    required
+                    render={({ field }) => (
+                        <Input
+                            label="Password"
+                            {...field}
+                            type="password"
+                            autoComplete="new-password"
+                            required
+                            error={errors.password?.message ?? null}
+                        />
+                    )}
                 />
 
-                <Input
-                    label="Confirm password"
+                <Controller
+                    control={control}
                     name="confirm"
-                    type="password"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    autoComplete="new-password"
-                    required
+                    render={({ field }) => (
+                        <Input
+                            label="Confirm password"
+                            {...field}
+                            type="password"
+                            autoComplete="new-password"
+                            required
+                            error={errors.confirm?.message ?? null}
+                        />
+                    )}
                 />
 
-                {error && <div className="text-sm text-red-600 mb-3">{error}</div>}
-
-                <div className="flex items-center justify-between">
-                    <Button type="submit" disabled={loading} variant="primary">
-                        {loading ? 'Creating…' : 'Create account'}
+                <div className="flex items-center justify-between mt-4">
+                    <Button type="submit" disabled={isSubmitting} variant="primary">
+                        {isSubmitting ? 'Creating…' : 'Create account'}
                     </Button>
 
                     <div className="text-sm text-gray-600">
                         <span>Already have an account? </span>
-                        <Link to="/login" className="text-teal-600 hover:underline">Sign In</Link>
+                        <Link to="/login" className="text-teal-600 hover:underline">
+                            Sign In
+                        </Link>
                     </div>
                 </div>
             </form>
