@@ -2,21 +2,15 @@
 import React from 'react';
 import type { FileDoc } from '../types/file';
 import { Button } from '../ui/Button';
-import api from '../api/axios';
 
-export const FileTable: React.FC<{ files: FileDoc[]; onDownloadError?: (msg:string)=>void; onPreview?: (f: FileDoc)=>void }> = ({ files, onDownloadError, onPreview }) => {
-    const handleDownload = async (f: FileDoc) => {
-        try {
-            if (f.url) { window.open(f.url, '_blank'); return; }
-            const resp = await api.get<{url:string}>(`/api/uploads/${f._id}/download`);
-            if (resp.data?.url) window.open(resp.data.url, '_blank');
-            else throw new Error('No url');
-        } catch (err: any) {
-            const msg = err?.response?.data?.message ?? 'Download failed';
-            onDownloadError?.(msg);
-        }
-    };
+type Props = {
+    files: FileDoc[];
+    onDownloadError?: (msg: string | null) => void; // kept for compatibility
+    onPreview?: (f: FileDoc) => void;
+    onSign?: (f: FileDoc) => void;
+};
 
+export const FileTable: React.FC<Props> = ({ files, onPreview, onSign }) => {
     return (
         <div className="overflow-x-auto bg-white shadow rounded">
             <table className="min-w-full text-sm">
@@ -28,15 +22,30 @@ export const FileTable: React.FC<{ files: FileDoc[]; onDownloadError?: (msg:stri
                     <th className="p-3">Action</th>
                 </tr>
                 </thead>
+
                 <tbody>
-                {files.map(f => (
+                {files.map((f) => (
                     <tr key={f._id} className="border-t">
                         <td className="p-3">{f.originalName}</td>
-                        <td className="p-3">{(f.size/1024).toFixed(1)} KB</td>
+                        <td className="p-3">{(f.size / 1024).toFixed(1)} KB</td>
                         <td className="p-3">{new Date(f.createdAt).toLocaleString()}</td>
+
                         <td className="p-3 flex gap-2">
-                            <Button variant="ghost" size={"sm"} onClick={() => onPreview ? onPreview(f): handleDownload(f)}>Preview</Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDownload(f)}>Download</Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onPreview?.(f)}
+                            >
+                                Preview
+                            </Button>
+
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => onSign?.(f)}
+                            >
+                                Sign
+                            </Button>
                         </td>
                     </tr>
                 ))}
@@ -45,3 +54,5 @@ export const FileTable: React.FC<{ files: FileDoc[]; onDownloadError?: (msg:stri
         </div>
     );
 };
+
+export default FileTable;

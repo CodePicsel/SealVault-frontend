@@ -1,165 +1,101 @@
-// src/components/PdfViewerModal.tsx
-import React, { useEffect, useRef, useState } from 'react';
+// src/components/PdfViewerModalSimple.tsx
+import React, { useEffect, useState } from 'react';
 import { Document, Page } from 'react-pdf';
-import api from '../api/axios';
 import type { FileDoc } from '../types/file';
+import api from '../api/axios';
 
 type Props = {
     open: boolean;
     file: FileDoc | null;
     onClose: () => void;
+    onSign: (file: FileDoc) => void;
 };
 
-const PdfViewerModal: React.FC<Props> = ({ open, file, onClose }) => {
-    const [pdfUrl, setPdfUrl] = useState<string | null>(null); // object URL
+const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) => {
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [numPages, setNumPages] = useState<number>(0);
-    const [page, setPage] = useState<number>(1);
-    const [scale, setScale] = useState<number>(1);
-    const mountedRef = useRef(true);
+    const [numPages, setNumPages] = useState(0);
+    const [page, setPage] = useState(1);
+    const [scale, setScale] = useState(1);
 
     useEffect(() => {
-        mountedRef.current = true;
-        return () => { mountedRef.current = false; };
-    }, []);
-
-    // fetch signed url -> blob -> objectURL
-    useEffect(() => {
-        if (!open) return;
-        if (!file) return;
-
         let objectUrl: string | null = null;
         const controller = new AbortController();
-
-        const load = async () => {
-            setLoading(true);
-            setError(null);
-            setPdfUrl(null);
-            setNumPages(0);
-            setPage(1);
-
+        if (!open || !file) return;
+        (async () => {
             try {
-                // get signed url from backend
+                setLoading(true);
                 const resp = await api.get<{ url: string }>(`/api/uploads/${file._id}/download`);
-                const signedUrl = resp.data?.url;
-                if (!signedUrl) throw new Error('No download URL returned');
-
-                // fetch blob and create object URL
-                const r = await fetch(signedUrl, { signal: controller.signal });
-                if (!r.ok) throw new Error(`Failed to download PDF (${r.status})`);
+                const url = resp.data?.url;
+                if (!url) throw new Error('No download url');
+                const r = await fetch(url, { signal: controller.signal });
+                if (!r.ok) throw new Error(`Failed (${r.status})`);
                 const blob = await r.blob();
                 objectUrl = URL.createObjectURL(blob);
-
-                if (!mountedRef.current) {
-                    if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    return;
-                }
                 setPdfUrl(objectUrl);
-            } catch (err: any) {
-                if (err.name === 'AbortError') return;
-                console.error('PDF load error', err);
-                setError(err?.message || 'Could not load PDF');
-                // auto-close on error (optional)
-                // onClose();
+                setPage(1);
+            } catch (err) {
+                console.error('preview load error', err);
             } finally {
                 setLoading(false);
             }
-        };
-
-        load();
-
+        })();
         return () => {
             controller.abort();
-            if (objectUrl) {
-                URL.revokeObjectURL(objectUrl);
-            }
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
         };
-    }, [open, file, onClose]);
+    }, [open, file]);
 
-    const onDocumentLoadSuccess = (d: { numPages: number }) => {
-        setNumPages(d.numPages);
-        setPage(1);
-    };
+    const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => setNumPages(numPages);
 
     if (!open) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* backdrop */}
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-
-            {/* modal */}
             <div className="relative z-10 w-[90vw] max-w-5xl max-h-[90vh] bg-white rounded shadow-lg overflow-hidden">
-                <div className="flex items-center justify-between p-3 border-b">
+                <div className="flex items-center justify-between p-4 border-b">
                     <div>
                         <div className="font-semibold">{file?.originalName ?? 'Document'}</div>
-                        <div className="text-xs text-gray-500">{page} / {numPages || '—'}</div>
+                        <div className="text-sm text-gray-500">{page} / {numPages || '—'}</div>
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setScale(s => Math.max(0.5, s - 0.25))}>−</button>
+                        <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setScale(s => s + 0.25)}>+</button>
+
                         <button
-                            className="px-2 py-1 bg-gray-100 rounded text-sm"
-                            onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}
-                            aria-label="Zoom out"
+                            className="px-4 py-2 bg-emerald-600 text-white rounded shadow"
+                            onClick={() => file && onSign(file)}
+                            title="Sign this document"
                         >
-                            −
-                        </button>
-                        <button
-                            className="px-2 py-1 bg-gray-100 rounded text-sm"
-                            onClick={() => setScale((s) => s + 0.25)}
-                            aria-label="Zoom in"
-                        >
-                            +
+                            Sign
                         </button>
 
                         <a
-                            className="px-2 py-1 bg-teal-600 text-white rounded text-sm"
+                            className="px-3 py-1 bg-teal-600 text-white rounded"
                             href={pdfUrl ?? file?.url ?? '#'}
                             target="_blank"
                             rel="noopener noreferrer"
-                            onClick={(e) => {
-                                // if we have blob url use it instead of re-downloading
-                                if (pdfUrl) { e.preventDefault(); window.open(pdfUrl, '_blank', 'noopener'); }
-                            }}
+                            onClick={(e) => { if (pdfUrl) { e.preventDefault(); window.open(pdfUrl, '_blank', 'noopener'); } }}
                         >
-                            Open raw
+                            Download
                         </a>
 
-                        <button className="px-2 py-1 bg-red-100 rounded text-sm" onClick={onClose}>Close</button>
+                        <button className="px-3 py-1 bg-red-100 rounded" onClick={onClose}>Close</button>
                     </div>
                 </div>
 
                 <div className="p-4 overflow-auto" style={{ height: 'calc(90vh - 88px)' }}>
                     {loading && <div className="text-center py-12">Loading PDF…</div>}
-                    {error && <div className="text-center text-red-600 py-6">{error}</div>}
-
-                    {!loading && !error && pdfUrl && (
+                    {!loading && pdfUrl && (
                         <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading="">
-                            <div className="flex flex-col items-center">
-                                <Page
-                                    pageNumber={page}
-                                    width={800}
-                                    scale={scale}
-                                    renderAnnotationLayer={false}
-                                    renderTextLayer={false}
-                                />
-                                <div className="flex items-center gap-2 mt-4">
-                                    <button
-                                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                        className="px-3 py-1 bg-gray-100 rounded"
-                                        disabled={page <= 1}
-                                    >
-                                        Prev
-                                    </button>
-                                    <button
-                                        onClick={() => setPage((p) => Math.min(numPages, p + 1))}
-                                        className="px-3 py-1 bg-gray-100 rounded"
-                                        disabled={page >= numPages}
-                                    >
-                                        Next
-                                    </button>
-                                </div>
+                            <div className="flex justify-center">
+                                <Page pageNumber={page} width={800 * scale} renderAnnotationLayer={false} renderTextLayer={false} />
+                            </div>
+                            <div className="flex justify-center gap-2 mt-3">
+                                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</button>
+                                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setPage(p => Math.min(numPages, p + 1))}>Next</button>
                             </div>
                         </Document>
                     )}
@@ -169,4 +105,4 @@ const PdfViewerModal: React.FC<Props> = ({ open, file, onClose }) => {
     );
 };
 
-export default PdfViewerModal;
+export default PdfViewerModalSimple;
