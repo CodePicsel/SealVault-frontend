@@ -53,8 +53,10 @@ const SignatureOverlay: React.FC<Props> = ({
             const maxSuggested = Math.max(64, Math.floor(pageBox.width * 0.3));
             const w = Math.max(MIN_WIDTH, Math.min(maxSuggested, img.naturalWidth, initialWidth || maxSuggested));
             const h = Math.round(w * ratio);
-            setPos(p => ({ ...p, width: w, height: h }));
-            startPos.current = { left: p.left ?? initialLeft, top: p.top ?? initialTop, width: w, height: h } as any;
+            setPos(curr => {
+                startPos.current = { left: curr.left ?? initialLeft, top: curr.top ?? initialTop, width: w, height: h } as any;
+                return { ...curr, width: w, height: h };
+            });
         };
         img.src = dataUrl;
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,9 +87,13 @@ const SignatureOverlay: React.FC<Props> = ({
 
     // pointer handlers
     const onPointerDown = (e: React.PointerEvent) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-role="remove-btn"]')) {
+            return;
+        }
+
         // select this overlay
         onSelect(id);
-        const target = e.target as HTMLElement;
         const isResize = !!(target.closest('[data-role="resize-handle"]'));
         const clientX = e.clientX;
         const clientY = e.clientY;
@@ -134,7 +140,7 @@ const SignatureOverlay: React.FC<Props> = ({
 
     const onPointerUp = (e: React.PointerEvent) => {
         const el = wrapperRef.current!;
-        try { el.releasePointerCapture?.(e.pointerId); } catch { }
+        try { el.releasePointerCapture?.(e.pointerId); } catch { console.log("Hello World") }
         const wasDragging = dragging.current || resizing.current;
         dragging.current = false;
         resizing.current = false;
@@ -210,10 +216,12 @@ const SignatureOverlay: React.FC<Props> = ({
                     <>
                         {/* delete button (small) */}
                         <button
+                            data-role="remove-btn"
                             onClick={remove}
-                            className="absolute -top-2 -right-2 bg-white border rounded-full w-5 h-5 flex items-center justify-center text-xs shadow"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full w-7 h-7 flex items-center justify-center text-sm shadow-md text-red-500 hover:bg-red-50 font-bold"
                             title="Remove"
-                            style={{ zIndex: 120 }}
+                            style={{ zIndex: 120, touchAction: 'none' }}
                         >
                             ×
                         </button>
