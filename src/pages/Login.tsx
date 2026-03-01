@@ -9,6 +9,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { loginSchema, type LoginInput } from '../schemas/auth';
 import type { User } from '../types/auth';
+import GoogleSignIn from "../components/GoogleSignIn.tsx";
 type LoginResponse = { token: string; user: User };
 
 export const Login: React.FC = () => {
@@ -34,6 +35,12 @@ export const Login: React.FC = () => {
             navigate('/', { replace: true });
         } catch (err: any) {
             const message = err?.response?.data?.message ?? 'Login failed';
+            if (message.includes('Google')) {
+                // show friendly UI: prompt user to use Google or set password
+                alert(message);
+            } else {
+                alert(message);
+            }
             alert(message);
         }
     };
@@ -86,6 +93,9 @@ export const Login: React.FC = () => {
                     </div>
                 </div>
             </form>
+            <div className="mt-4">
+                <GoogleSignIn onSuccess={() => navigate('/')} />
+            </div>
         </div>
     );
 };

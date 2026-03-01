@@ -8,6 +8,7 @@ import { Button } from '../ui/Button';
 import {useForm, Controller} from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterInput } from '../schemas/auth';
+import GoogleSignIn from "../components/GoogleSignIn.tsx";
 
 export const SignUp: React.FC = () => {
     const navigate = useNavigate();
@@ -98,6 +99,9 @@ export const SignUp: React.FC = () => {
                     </div>
                 </div>
             </form>
+            <div className="mt-4">
+                <GoogleSignIn onSuccess={() => navigate('/')} />
+            </div>
         </div>
     );
 };
