@@ -7,6 +7,7 @@ import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoutes';
 import { Dashboard } from './pages/Dashboard';
 import SignPage from './pages/SignPage';
+import SignedResult from "./pages/SignedResult.tsx";
 
 const App: React.FC = () => {
     return (
@@ -31,6 +32,14 @@ const App: React.FC = () => {
                         element={
                             <ProtectedRoute>
                                 <SignPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/signed/:id"
+                        element={
+                            <ProtectedRoute>
+                                <SignedResult />
                             </ProtectedRoute>
                         }
                     />
