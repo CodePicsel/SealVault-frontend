@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { FileDoc } from '../types/file';
 import SignatureCanvas from './SignatureCanvas';
+import { Button } from '../ui/Button';
 
 type Props = {
     open: boolean;
@@ -170,42 +171,42 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-            <div className="relative z-10 w-[90vw] max-w-3xl bg-white rounded shadow-lg p-6">
+            <div className="absolute inset-0 bg-slate-900/5" onClick={onClose} />
+            <div className="relative z-10 w-[90vw] max-w-3xl bg-white/20 backdrop-blur-md border border-white/60 shadow-2xl rounded-2xl p-6">
                 {step === 1 && (
                     <>
-                        <h3 className="text-xl font-semibold mb-4">Who will sign this document?</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <button onClick={() => openStep2('me')} className="p-6 border rounded text-left">
-                                <div className="text-lg font-medium">Only me</div>
+                        <h3 className="text-xl font-semibold mb-4 text-gray-800">Who will sign this document?</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button onClick={() => openStep2('me')} className="p-6 bg-white/40 border border-white/50 backdrop-blur-sm shadow-sm hover:bg-white/60 transition-colors rounded-xl text-left">
+                                <div className="text-lg font-medium text-gray-800">Only me</div>
                                 <div className="text-sm text-gray-500 mt-1">Sign this document yourself</div>
                             </button>
-                            <button onClick={() => openStep2('several')} className="p-6 border rounded text-left">
-                                <div className="text-lg font-medium">Several people</div>
+                            <button onClick={() => openStep2('several')} className="p-6 bg-white/40 border border-white/50 backdrop-blur-sm shadow-sm hover:bg-white/60 transition-colors rounded-xl text-left">
+                                <div className="text-lg font-medium text-gray-800">Several people</div>
                                 <div className="text-sm text-gray-500 mt-1">Invite others to sign</div>
                             </button>
                         </div>
                         <div className="mt-6 flex justify-end gap-2">
-                            <button className="px-3 py-1" onClick={onClose}>Cancel</button>
+                            <Button variant="ghost" onClick={onClose}>Cancel</Button>
                         </div>
                     </>
                 )}
 
                 {step === 2 && (
                     <>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-semibold">Create or choose a signature</h3>
-                            <div>
-                                <button className="px-3 py-1 mr-2" onClick={() => { setStep(1); setSelectedDataUrl(null); }}>Back</button>
-                                <button className="px-3 py-1 bg-gray-100 rounded" onClick={onClose}>Cancel</button>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
+                            <h3 className="text-xl font-semibold text-gray-800">Create or choose a signature</h3>
+                            <div className="flex gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => { setStep(1); setSelectedDataUrl(null); }}>Back</Button>
+                                <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
                             </div>
                         </div>
 
                         <div className="mb-3">
-                            <div className="flex gap-2">
-                                <button className={`px-3 py-1 rounded ${activeTab === 'presets' ? 'bg-emerald-600 text-white' : 'bg-gray-100'}`} onClick={() => onTabChange('presets')}>Presets</button>
-                                <button className={`px-3 py-1 rounded ${activeTab === 'draw' ? 'bg-emerald-600 text-white' : 'bg-gray-100'}`} onClick={() => onTabChange('draw')}>Draw</button>
-                                <button className={`px-3 py-1 rounded ${activeTab === 'upload' ? 'bg-emerald-600 text-white' : 'bg-gray-100'}`} onClick={() => onTabChange('upload')}>Upload</button>
+                            <div className="flex flex-wrap gap-2">
+                                <Button variant={activeTab === 'presets' ? 'primary' : 'ghost'} size="sm" onClick={() => onTabChange('presets')}>Presets</Button>
+                                <Button variant={activeTab === 'draw' ? 'primary' : 'ghost'} size="sm" onClick={() => onTabChange('draw')}>Draw</Button>
+                                <Button variant={activeTab === 'upload' ? 'primary' : 'ghost'} size="sm" onClick={() => onTabChange('upload')}>Upload</Button>
                             </div>
                         </div>
 
@@ -214,14 +215,14 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
                                 <div>
                                     <div className="mb-2 text-sm text-gray-600">Click a preset to select it</div>
 
-                                    <div className="flex gap-2 mb-3">
+                                    <div className="flex flex-col sm:flex-row gap-2 mb-3">
                                         <input
-                                            className="border p-2 rounded flex-1"
+                                            className="border border-white/50 bg-white/40 backdrop-blur-sm p-2 rounded-xl flex-1 focus:outline-none focus:ring-2 focus:ring-[#a3f7b5] text-gray-800 placeholder-gray-500"
                                             placeholder="Enter your name to add preset (e.g. Shashank Vijay Bankar)"
                                             value={nameInput}
                                             onChange={(e) => setNameInput(e.target.value)}
                                         />
-                                        <button className="px-3 py-1 bg-emerald-600 text-white rounded" onClick={addNamePreset}>Add</button>
+                                        <Button variant="primary" className="w-full sm:w-auto" onClick={addNamePreset}>Add</Button>
                                     </div>
 
                                     <div className="flex gap-2 overflow-x-auto py-2">
@@ -229,9 +230,9 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
                                             <div
                                                 key={p.id}
                                                 onClick={() => handlePresetClick(p)}
-                                                className="p-3 border rounded cursor-pointer min-w-[140px] flex-shrink-0"
+                                                className="p-3 bg-white/40 border border-white/50 backdrop-blur-sm rounded-xl cursor-pointer min-w-[140px] shrink-0 hover:bg-white/60 transition-colors shadow-sm"
                                             >
-                                                <div style={{ fontFamily: 'cursive', fontSize: 18, marginBottom: 8 }}>{p.label}</div>
+                                                <div style={{ fontFamily: 'cursive', fontSize: 18, marginBottom: 8 }} className="text-gray-800">{p.label}</div>
                                                 <img src={p.dataUrl} alt={p.label} style={{ maxWidth: 200, maxHeight: 72 }} />
                                             </div>
                                         ))}
@@ -265,17 +266,17 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
                             </div>
                         </div>
 
-                        <div className="mt-6 flex justify-end gap-2">
-                            <button className="px-3 py-1" onClick={() => { setStep(1); setSelectedDataUrl(null); }}>Back</button>
-                            <button
-                                className="px-4 py-2 rounded"
+                        <div className="mt-6 flex flex-wrap justify-end gap-2">
+                            <Button variant="ghost" className="w-full sm:w-auto" onClick={() => { setStep(1); setSelectedDataUrl(null); }}>Back</Button>
+                            <Button
+                                variant="primary"
+                                className="w-full sm:w-auto"
                                 onClick={goApply}
                                 disabled={!selectedDataUrl}
-                                style={{ background: selectedDataUrl ? '#059669' : '#94a3b8', color: 'white' }}
                                 title={!selectedDataUrl ? 'Select a signature first' : 'Apply & open editor'}
                             >
                                 Apply & open editor
-                            </button>
+                            </Button>
                         </div>
                     </>
                 )}

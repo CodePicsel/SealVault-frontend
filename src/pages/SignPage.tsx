@@ -396,8 +396,8 @@ const SignPage: React.FC = () => {
     const pagesWithSigs = new Set(placed.map(s => s.page));
 
     return (
-        <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 overflow-hidden">
-            <aside className="hidden md:block w-24 shrink-0 border-r bg-white p-2 overflow-y-auto">
+        <div className="min-h-screen flex flex-col md:flex-row bg-[#f8fbf9] bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] bg-size-[24px_24px] overflow-hidden">
+            <aside className="hidden md:block w-24 shrink-0 border-r border-white/60 bg-white/40 backdrop-blur-md p-2 overflow-y-auto">
                 <div className="space-y-2">
                     {Array.from({ length: numPages || 1 }, (_, idx) => {
                         const pg = idx + 1;
@@ -415,15 +415,15 @@ const SignPage: React.FC = () => {
             </aside>
 
             <main className="flex-1 p-4 overflow-auto" onClick={() => setSelectedId(null)}>
-                <div className="max-w-4xl mx-auto bg-white p-4 relative">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="max-w-4xl mx-auto bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 p-4 relative shadow">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0">
                         <div>
-                            <h2 className="text-lg font-semibold">Signing workspace</h2>
-                            <div className="text-sm text-gray-500">Page {currentPage} / {numPages || '—'}</div>
+                            <h2 className="text-lg font-semibold text-teal-900">Signing workspace</h2>
+                            <div className="text-sm text-gray-600">Page {currentPage} / {numPages || '—'}</div>
                         </div>
-                        <div className="flex gap-2">
-                            <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => navigate(-1)}>Back</button>
-                            <button className="px-3 py-1 bg-emerald-600 text-white rounded" onClick={onApply} disabled={loading}>
+                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                            <button className="px-3 py-1 bg-white/50 backdrop-blur-md border border-white/60 hover:bg-white/80 transition-colors rounded text-teal-900 w-full sm:w-auto" onClick={() => navigate(-1)}>Back</button>
+                            <button className="px-3 py-1 bg-[#a3f7b5] text-teal-950 hover:bg-white/40 hover:backdrop-blur-md hover:border-white/60 border border-transparent transition-all rounded w-full sm:w-auto" onClick={onApply} disabled={loading}>
                                 {loading ? 'Applying…' : 'Apply'}
                             </button>
                         </div>

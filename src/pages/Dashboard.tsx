@@ -10,6 +10,9 @@ import type { FileDoc } from '../types/file';
 
 import PdfViewerModalSimple from '../components/PdfViewerModal';
 import SignFlowModal from '../components/SignFlowModal';
+import { Tabs, type TabItem } from '../ui/Tabs';
+import { ProfilePlaceholder } from '../components/ProfilePlaceholder';
+import { ActivitiesPlaceholder } from '../components/ActivitiesPlaceholder';
 
 export const Dashboard: React.FC = () => {
     const { user, logout } = useAuth();
@@ -24,6 +27,15 @@ export const Dashboard: React.FC = () => {
 
     // Sign flow modal state
     const [signFlowOpen, setSignFlowOpen] = useState(false);
+
+    // Tabs state
+    const [activeTab, setActiveTab] = useState('uploads');
+
+    const tabs: TabItem[] = [
+        { id: 'uploads', label: 'Uploads' },
+        { id: 'profile', label: 'Profile' },
+        { id: 'activities', label: 'Activities' },
+    ];
 
     const fetchFiles = async () => {
         setLoading(true);
@@ -56,53 +68,68 @@ export const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto p-6">
-            <Header
-                title="Your Dashboard"
-                subtitle={`Signed in as ${user?.email ?? '—'}`}
-                actions={
-                    <>
-                        <UploadButton onUploaded={async () => { await fetchFiles(); }} />
-                        <Button
-                            variant="danger"
-                            onClick={() => {
-                                logout();
-                                window.location.href = '/login';
-                            }}
-                        >
-                            Logout
-                        </Button>
-                    </>
-                }
-            />
-
-            {/* Preview Modal */}
-            <PdfViewerModalSimple
-                open={previewOpen}
-                file={activeFile}
-                onClose={() => setPreviewOpen(false)}
-                onSign={handleSignFromPreview}
-            />
-
-            {/* Sign Flow Modal (Step 1 & 2) */}
-            <SignFlowModal
-                open={signFlowOpen}
-                file={activeFile}
-                onClose={() => setSignFlowOpen(false)}
-            />
-
-            {error && <div className="text-red-500 mb-4">{error}</div>}
-
-            {loading ? (
-                <div>Loading…</div>
-            ) : (
-                <FileTable
-                    files={files}
-                    onDownloadError={setError}
-                    onPreview={openPreview}
-                    onSign={(f) => handleSignFromPreview(f)}
+        <div className="min-h-screen bg-[#f8fbf9] bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] bg-size-[24px_24px] p-6 lg:p-8">
+            <div className="max-w-6xl mx-auto">
+                <Header
+                    subtitle={`logged in as ${user?.email ?? '—'}`}
+                    actions={
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+                            <UploadButton onUploaded={async () => { await fetchFiles(); }} />
+                            <Button
+                                variant="ghost"
+                                onClick={() => {
+                                    logout();
+                                    window.location.href = '/login';
+                                }}
+                            >
+                                Logout
+                            </Button>
+                        </div>
+                    }
                 />
-            )}
+
+                {/* Preview Modal */}
+                <PdfViewerModalSimple
+                    open={previewOpen}
+                    file={activeFile}
+                    onClose={() => setPreviewOpen(false)}
+                    onSign={handleSignFromPreview}
+                />
+
+                {/* Sign Flow Modal (Step 1 & 2) */}
+                <SignFlowModal
+                    open={signFlowOpen}
+                    file={activeFile}
+                    onClose={() => setSignFlowOpen(false)}
+                />
+
+                <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+
+                {error && <div className="text-red-500 mb-4 bg-white/40 backdrop-blur-sm p-4 rounded-xl border border-white/60">{error}</div>}
+
+                {activeTab === 'uploads' && (
+                    loading ? (
+                        <div className="bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 p-12 text-center text-gray-500 shadow-sm">Loading…</div>
+                    ) : (
+                        <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 shadow p-6">
+                            <FileTable
+                                files={files}
+                                onDownloadError={setError}
+                                onPreview={openPreview}
+                                onSign={(f) => handleSignFromPreview(f)}
+                            />
+                        </div>
+                    )
+                )}
+
+                {activeTab === 'profile' && (
+                    <ProfilePlaceholder email={user?.email} />
+                )}
+
+                {activeTab === 'activities' && (
+                    <ActivitiesPlaceholder />
+                )}
+            </div>
         </div>
     );
 };

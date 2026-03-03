@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Document, Page } from 'react-pdf';
 import type { FileDoc } from '../types/file';
 import api from '../api/axios';
+import { Button } from '../ui/Button';
 
 type Props = {
     open: boolean;
@@ -52,37 +53,44 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-            <div className="relative z-10 w-[90vw] max-w-5xl max-h-[90vh] bg-white rounded shadow-lg overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b">
+            <div className="absolute inset-0 bg-slate-900/5" onClick={onClose} />
+            <div className="relative z-10 w-[95vw] sm:w-[90vw] max-w-5xl max-h-[90vh] bg-white/20 backdrop-blur-md border border-white/60 shadow-2xl rounded-2xl overflow-hidden flex flex-col">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b border-white/40 gap-4 sm:gap-0">
                     <div>
-                        <div className="font-semibold">{file?.originalName ?? 'Document'}</div>
-                        <div className="text-sm text-gray-500">{page} / {numPages || '—'}</div>
+                        <div className="font-semibold break-all text-gray-800">{file?.originalName ?? 'Document'}</div>
+                        <div className="text-sm text-gray-600">{page} / {numPages || '—'}</div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setScale(s => Math.max(0.5, s - 0.25))}>−</button>
-                        <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setScale(s => s + 0.25)}>+</button>
+                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
+                        <Button variant="ghost" size="sm" className="flex-1 sm:flex-none font-bold text-lg" onClick={() => setScale(s => Math.max(0.5, s - 0.25))}>−</Button>
+                        <Button variant="ghost" size="sm" className="flex-1 sm:flex-none font-bold text-lg" onClick={() => setScale(s => s + 0.25)}>+</Button>
 
-                        <button
-                            className="px-4 py-2 bg-emerald-600 text-white rounded shadow"
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            className="flex-1 sm:flex-none shadow-md"
                             onClick={() => file && onSign(file)}
                             title="Sign this document"
                         >
                             Sign
-                        </button>
+                        </Button>
 
-                        <a
-                            className="px-3 py-1 bg-teal-600 text-white rounded"
-                            href={pdfUrl ?? file?.url ?? '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => { if (pdfUrl) { e.preventDefault(); window.open(pdfUrl, '_blank', 'noopener'); } }}
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            className="flex-1 sm:flex-none text-center shadow-md bg-linear-to-r from-teal-400/80 to-teal-500/80 hover:from-teal-400 hover:to-teal-500 hover:shadow-[0_8px_20px_rgba(45,212,191,0.4)] border-white/60 text-teal-950"
+                            onClick={() => {
+                                if (pdfUrl) {
+                                    window.open(pdfUrl, '_blank', 'noopener');
+                                } else if (file?.url) {
+                                    window.open(file.url, '_blank', 'noopener');
+                                }
+                            }}
                         >
                             Download
-                        </a>
+                        </Button>
 
-                        <button className="px-3 py-1 bg-red-100 rounded" onClick={onClose}>Close</button>
+                        <Button variant="danger" size="sm" className="flex-1 sm:flex-none" onClick={onClose}>Close</Button>
                     </div>
                 </div>
 
@@ -93,9 +101,9 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
                             <div className="flex justify-center">
                                 <Page pageNumber={page} width={800 * scale} renderAnnotationLayer={false} renderTextLayer={false} />
                             </div>
-                            <div className="flex justify-center gap-2 mt-3">
-                                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</button>
-                                <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setPage(p => Math.min(numPages, p + 1))}>Next</button>
+                            <div className="flex justify-center gap-2 mt-3 mb-2">
+                                <Button variant="ghost" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</Button>
+                                <Button variant="ghost" size="sm" onClick={() => setPage(p => Math.min(numPages, p + 1))}>Next</Button>
                             </div>
                         </Document>
                     )}

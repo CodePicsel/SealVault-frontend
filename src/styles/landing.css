@@ -1,0 +1,80 @@
+@tailwind utilities;
+
+/* Import Inter in case the head link is not present (safe fallback) */
+@layer base {
+    body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+}
+
+/* Custom styles used by the layout */
+body {
+    overflow-x: hidden;
+    background-color: #0f1115; /* dark background */
+    color: white;
+}
+
+/*!* Ambient background lighting — large blurred radial blobs *!*/
+.ambient-light {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    background:
+            radial-gradient(circle at 15% 50%, rgba(43,108,238,0.15) 0%, transparent 40%),
+            radial-gradient(circle at 85% 30%, rgba(139,92,246,0.15) 0%, transparent 40%),
+            radial-gradient(circle at 50% 80%, rgba(16,185,129,0.1) 0%, transparent 40%);
+    filter: blur(60px);
+}
+
+/*!* Glass pane main card *!*/
+.glass-pane {
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+}
+
+/*!* Smaller glass chips (nav buttons, badges) *!*/
+.glass-chip {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all .28s ease;
+}
+.glass-chip:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(43,108,238,0.4);
+    box-shadow: 0 0 15px rgba(43,108,238,0.2);
+}
+
+/* subtle text-behind-glass effect used for the huge TRANSPARENCY word */
+.text-behind-glass {
+    position: relative;
+    z-index: 0;
+    filter: blur(1px);
+    opacity: 0.8;
+    transform: scale(.98);
+}
+
+/* caustic overlay — used for thin light streaks */
+.caustic-overlay {
+    background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.05) 45%, transparent 50%);
+    mix-blend-mode: overlay;
+    pointer-events: none;
+}
+
+/* small helpers for the floating decorative blobs */
+.pulse-blob {
+    pointer-events: none;
+    filter: blur(24px);
+    opacity: .18;
+}
+
+/* Responsive tweaks if needed */
+@media (max-width: 640px) {
+    .text-6xl { font-size: 2.25rem; } /* adjust large headline for tiny screens */
+}

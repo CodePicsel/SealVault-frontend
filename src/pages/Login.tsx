@@ -10,6 +10,7 @@ import { Button } from '../ui/Button';
 import { loginSchema, type LoginInput } from '../schemas/auth';
 import type { User } from '../types/auth';
 import GoogleSignIn from "../components/GoogleSignIn.tsx";
+import { Header } from "../ui/Header.tsx";
 
 type LoginResponse = { token: string; user: User };
 
@@ -62,62 +63,67 @@ export const Login: React.FC = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-lg shadow">
-            <h2 className="text-2xl font-semibold mb-4">Sign in</h2>
+        <div className="min-h-screen bg-[#f8fbf9] bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] bg-size-[24px_24px] py-12 px-4 sm:px-6 lg:px-8">
+            <div className="w-full max-w-md mx-auto">
+                <Header title="Welcome back" subtitle="Sign in to your account" variant="auth" />
+                <div className="p-8 bg-white/70 backdrop-blur-md rounded-2xl border border-white/60 shadow-xl mt-4">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Sign in</h2>
 
-            {errorMessage && (
-                <div className="mb-4 p-3 text-sm bg-rose-50 text-rose-800 border border-rose-100 rounded">
-                    {errorMessage}
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                <Controller
-                    control={control}
-                    name="email"
-                    render={({ field }) => (
-                        <Input
-                            label="Email"
-                            {...field}
-                            type="email"
-                            autoComplete="email"
-                            required
-                            error={errors.email?.message ?? null}
-                        />
+                    {errorMessage && (
+                        <div className="mb-4 p-3 text-sm bg-rose-50 text-rose-800 border border-rose-100 rounded">
+                            {errorMessage}
+                        </div>
                     )}
-                />
 
-                <Controller
-                    control={control}
-                    name="password"
-                    render={({ field }) => (
-                        <Input
-                            label="Password"
-                            {...field}
-                            type="password"
-                            autoComplete="current-password"
-                            required
-                            error={errors.password?.message ?? null}
+                    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                        <Controller
+                            control={control}
+                            name="email"
+                            render={({ field }) => (
+                                <Input
+                                    label="Email"
+                                    {...field}
+                                    type="email"
+                                    autoComplete="email"
+                                    required
+                                    error={errors.email?.message ?? null}
+                                />
+                            )}
                         />
-                    )}
-                />
 
-                <div className="flex items-center justify-between mt-4">
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Signing in…' : 'Sign in'}
-                    </Button>
+                        <Controller
+                            control={control}
+                            name="password"
+                            render={({ field }) => (
+                                <Input
+                                    label="Password"
+                                    {...field}
+                                    type="password"
+                                    autoComplete="current-password"
+                                    required
+                                    error={errors.password?.message ?? null}
+                                />
+                            )}
+                        />
 
-                    <div className="text-sm text-gray-600">
-                        <span>Don't have an account? </span>
-                        <Link to="/signup" className="text-teal-600 hover:underline">
-                            Create one
-                        </Link>
+                        <div className="flex items-center justify-between mt-4">
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? 'Signing in…' : 'Sign in'}
+                            </Button>
+
+                            <div className="text-sm text-gray-600">
+                                <span>Don't have an account? </span>
+                                <Link to="/signup" className="text-teal-600 hover:underline">
+                                    Create one
+                                </Link>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div className="mt-6">
+                        <GoogleSignIn onSuccess={() => navigate('/')} />
                     </div>
                 </div>
-            </form>
-
-            <div className="mt-4">
-                <GoogleSignIn onSuccess={() => navigate('/')} />
             </div>
         </div>
     );

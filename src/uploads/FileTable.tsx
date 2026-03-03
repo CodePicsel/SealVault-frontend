@@ -12,45 +12,44 @@ type Props = {
 
 export const FileTable: React.FC<Props> = ({ files, onPreview, onSign }) => {
     return (
-        <div className="overflow-x-auto bg-white shadow rounded">
-            <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-left text-gray-600">
-                <tr>
-                    <th className="p-3">Name</th>
-                    <th className="p-3">Size</th>
-                    <th className="p-3">Uploaded</th>
-                    <th className="p-3">Action</th>
-                </tr>
-                </thead>
+        <div className="flex flex-col gap-3">
+            {files.length === 0 && (
+                <div className="p-8 text-center text-gray-500 bg-white/60 backdrop-blur-md rounded-2xl border border-white/60">
+                    No files available.
+                </div>
+            )}
+            {files.map((f) => (
+                <div key={f._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-3 bg-white/80 border border-gray-200/80 rounded-[24px] shadow-sm hover:shadow-md transition-all gap-4 sm:gap-0">
+                    <div className="flex-1 text-gray-700 font-semibold text-sm truncate px-0 sm:px-4 w-full sm:w-auto text-center sm:text-left">{f.originalName}</div>
 
-                <tbody>
-                {files.map((f) => (
-                    <tr key={f._id} className="border-t">
-                        <td className="p-3">{f.originalName}</td>
-                        <td className="p-3">{(f.size / 1024).toFixed(1)} KB</td>
-                        <td className="p-3">{new Date(f.createdAt).toLocaleString()}</td>
+                    <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-0 w-full sm:w-auto">
+                        <div className="w-auto sm:w-24 text-gray-600 text-center font-semibold text-sm shrink-0">{(f.size / 1024).toFixed(1)} KB</div>
+                        <div className="hidden sm:block w-px h-4 bg-gray-300 mx-2"></div>
+                        <div className="w-auto sm:w-32 text-gray-600 text-center font-semibold text-sm shrink-0">{new Date(f.createdAt).toLocaleDateString()}</div>
+                    </div>
 
-                        <td className="p-3 flex gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => onPreview?.(f)}
-                            >
-                                Preview
-                            </Button>
+                    <div className="flex items-center justify-center sm:justify-end gap-3 shrink-0 sm:ml-4 sm:pr-1 w-full sm:w-auto">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-10 px-5 font-bold"
+                            onClick={() => onPreview?.(f)}
+                        >
+                            Preview
+                        </Button>
 
-                            <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() => onSign?.(f)}
-                            >
-                                Sign
-                            </Button>
-                        </td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            className="flex flex-col items-center justify-center p-0 w-28 h-12"
+                            onClick={() => onSign?.(f)}
+                        >
+                            <span className="font-bold text-base leading-none">Sign</span>
+                            <span className="text-[10px] font-semibold opacity-70 mt-0.5">this document</span>
+                        </Button>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 };
