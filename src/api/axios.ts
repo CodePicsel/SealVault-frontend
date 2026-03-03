@@ -35,18 +35,32 @@ api.interceptors.response.use(
     (res) => res,
     async (err) => {
         const originalRequest = err.config;
-        if (!err.response) return Promise.reject(err);
 
-        if (err.response.status === 401 && !originalRequest._retry) {
+        // If no response (network error), just reject
+        if (!err.response) {
+            return Promise.reject(err);
+        }
+
+        const status = err.response.status;
+
+        // 🚫 Do NOT refresh for auth endpoints
+        const isAuthRoute =
+            originalRequest.url?.includes('/api/auth/login') ||
+            originalRequest.url?.includes('/api/auth/register') ||
+            originalRequest.url?.includes('/api/auth/refresh');
+
+        if (status === 401 && !originalRequest._retry && !isAuthRoute) {
             originalRequest._retry = true;
 
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
-                }).then((token) => {
-                    originalRequest.headers['Authorization'] = `Bearer ${token}`;
-                    return api(originalRequest);
-                }).catch((e) => Promise.reject(e));
+                })
+                    .then((token) => {
+                        originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                        return api(originalRequest);
+                    })
+                    .catch((e) => Promise.reject(e));
             }
 
             isRefreshing = true;
@@ -54,10 +68,12 @@ api.interceptors.response.use(
             try {
                 const r = await api.post('/api/auth/refresh');
                 const newToken = r.data?.token;
+
                 if (!newToken) throw new Error('No token returned from refresh');
 
                 localStorage.setItem('token', newToken);
                 api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
                 processQueue(null, newToken);
 
                 originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
