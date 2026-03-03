@@ -1,181 +1,110 @@
 // src/pages/LandingPage.tsx
-import {type JSX} from "react";
+import React, { useEffect, useRef, type JSX } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function LandingPage(): JSX.Element {
+    const navigate = useNavigate();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // High performance cursor tracking without React state re-renders
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (containerRef.current) {
+                containerRef.current.style.setProperty('--mouse-x', `${e.clientX}px`);
+                containerRef.current.style.setProperty('--mouse-y', `${e.clientY}px`);
+            }
+        };
+        window.addEventListener("mousemove", handleMouseMove, { passive: true });
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+    }, []);
+
     return (
-        <div className="min-h-screen flex flex-col relative antialiased selection:bg-primary/30 selection:text-white">
-            {/* Ambient lighting background */}
-            <div className="ambient-light"/>
+        <div
+            ref={containerRef}
+            className="min-h-screen bg-[#f3fbf6] relative overflow-hidden flex flex-col font-sans selection:bg-[#4a8b71]/30 selection:text-black"
+            style={{ '--mouse-x': '-1000px', '--mouse-y': '-1000px' } as React.CSSProperties}
+        >
+            <style>
+                {`
+                    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+                    
+                    .font-cursive { 
+                        font-family: 'Great Vibes', cursive; 
+                        font-weight: 400; 
+                    }
+                    .font-chunky { 
+                        font-family: 'Anton', sans-serif; 
+                        letter-spacing: 0.01em; 
+                    }
+                    .btn-text { 
+                        font-family: 'Playfair Display', serif; 
+                    }
+                    
+                    /* The sexy smooth grid mask that follows the cursor */
+                    .grid-mask {
+                        mask-image: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), black 0%, transparent 80%);
+                        -webkit-mask-image: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), black 0%, transparent 80%);
+                        transition: mask-position 0.1s ease-out, -webkit-mask-position 0.1s ease-out;
+                    }
+                `}
+            </style>
 
-            {/* Top Navigation */}
-            <nav className="fixed top-0 left-0 w-full z-50 px-6 py-6">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    {/* Logo */}
-                    <div className="flex items-center gap-3 glass-chip px-4 py-2 rounded-full cursor-pointer group">
-                        <span
-                            className="material-symbols-outlined text-primary group-hover:text-white transition-colors">change_history</span>
-                        <span className="text-white font-bold tracking-tight text-sm uppercase">Prism</span>
-                    </div>
+            {/* Desktop Grid Mask Layer */}
+            <div
+                className="hidden md:block absolute inset-0 pointer-events-none z-0 grid-mask"
+                style={{
+                    backgroundImage: 'linear-gradient(to right, #d3eadb 1.5px, transparent 1.5px), linear-gradient(to bottom, #d3eadb 1.5px, transparent 1.5px)',
+                    backgroundSize: '24px 24px',
+                }}
+            />
 
-                    {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center gap-4">
-                        <div className="glass-chip rounded-full px-1 p-1 flex items-center gap-1">
-                            <a className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-full transition-all"
-                               href="#">Solutions</a>
-                            <a className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-full transition-all"
-                               href="#">Pricing</a>
-                            <a className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-full transition-all"
-                               href="#">Enterprise</a>
-                        </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-3">
-                        <a className="hidden sm:flex glass-chip px-5 py-2.5 rounded-full text-sm font-medium text-slate-200 hover:text-white"
-                           href="#">Login</a>
-                        <a className="bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-glow-sm hover:shadow-glow transition-all flex items-center gap-2"
-                           href="#">
-                            <span>Start Free</span>
-                            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                        </a>
-                    </div>
+            {/* Navbar / Logo */}
+            <nav className="relative z-10 w-full px-8 py-8 md:px-16 md:py-10">
+                <div className="text-[#2c4c3b] text-3xl md:text-5xl font-extrabold tracking-tighter">
+                    SealValut
                 </div>
             </nav>
 
             {/* Main Content Area */}
-            <main className="flex-grow flex items-center justify-center relative px-4 py-20 overflow-hidden">
-                {/* large blurred background circle */}
-                <div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 bg-primary/20 rounded-full blur-[100px] opacity-20 pointer-events-none"/>
-
-                <div className="w-full max-w-5xl relative z-10 flex flex-col items-center justify-center">
-                    {/* Headline Behind Glass */}
-                    <div
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none z-0">
-                        <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white/30 to-white/5 select-none blur-xs transform scale-110">
-                            TRANSPARENCY
-                        </h1>
+            <main className="flex-1 relative z-10 flex flex-col md:flex-row items-center justify-between px-8 md:px-16 w-full max-w-[1440px] mx-auto pb-20 pt-20">
+                {/* Left Side: Text */}
+                <div className="flex flex-col text-left w-full md:w-1/2">
+                    {/* Huge cursive 'Sign' */}
+                    <div className="font-cursive text-[140px] md:text-[230px] lg:text-[280px] leading-[0.6] text-black pr-0.5 drop-shadow-sm transform -rotate-2 relative z-20">
+                        Sign
                     </div>
 
-                    {/* The Glass Pane */}
-                    <div
-                        className="glass-pane rounded-2xl p-8 md:p-16 w-full max-w-3xl relative z-10 overflow-hidden group">
-                        {/* caustic light overlay on hover */}
-                        <div
-                            className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"/>
+                    {/* Bold chunky text */}
+                    <div className="md:mt-16 flex flex-col gap-1">
+                        <span className="font-chunky text-[65px] md:text-[90px] lg:text-[110px] leading-[0.9] text-black lowercase">
+                            documents in
+                        </span>
+                        <span className="font-chunky text-[65px] md:text-[90px] lg:text-[110px] leading-[0.9] text-[#4a8b71] lowercase mt-1">
+                            minutes
+                        </span>
+                    </div>
+                </div>
 
-                        <div className="relative z-20 flex flex-col items-center text-center gap-8">
-                            {/* Icon */}
-                            <div
-                                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-white/10 to-white/0 border border-white/10 flex items-center justify-center shadow-glass mb-2">
-                                <span className="material-symbols-outlined text-white text-3xl">fingerprint</span>
-                            </div>
-
-                            {/* Main Copy */}
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-lg">
-                                Transparency in <br/>
-                                <span
-                                    className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">Every Stroke</span>
-                            </h2>
-
-                            <p className="text-lg text-slate-300 max-w-lg font-light leading-relaxed">
-                                Secure, legally binding signatures with crystal clear audit trails. Experience the
-                                future of document verification.
-                            </p>
-
-                            {/* CTAs */}
-                            <div className="flex flex-col sm:flex-row gap-4 w-full justify-center mt-4">
-                                <button
-                                    className="bg-white text-slate-900 hover:bg-slate-100 px-8 py-3.5 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg min-w-[160px]">
-                                    Get Started
-                                </button>
-                                <button
-                                    className="glass-chip px-8 py-3.5 rounded-xl font-medium text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 min-w-[160px]">
-                                    <span className="material-symbols-outlined text-[20px]">play_circle</span>
-                                    View Demo
-                                </button>
-                            </div>
-
-                            {/* Trust Badges */}
-                            <div
-                                className="pt-8 flex items-center gap-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-                                <div className="flex items-center gap-2" title="SOC2 Compliant">
-                                    <span className="material-symbols-outlined text-xl">verified_user</span>
-                                    <span className="text-xs font-semibold tracking-wider">SOC2 TYPE II</span>
-                                </div>
-                                <div className="h-4 w-px bg-white/20"></div>
-                                <div className="flex items-center gap-2" title="GDPR Ready">
-                                    <span className="material-symbols-outlined text-xl">security</span>
-                                    <span className="text-xs font-semibold tracking-wider">GDPR READY</span>
-                                </div>
-                                <div className="h-4 w-px bg-white/20"></div>
-                                <div className="flex items-center gap-2" title="256-bit Encryption">
-                                    <span className="material-symbols-outlined text-xl">lock</span>
-                                    <span className="text-xs font-semibold tracking-wider">AES-256</span>
-                                </div>
-                            </div>
-                        </div>
+                {/* Right Side: Action buttons */}
+                <div className="flex flex-col md:items-center justify-center gap-5 w-full md:w-1/2 mt-10 md:mt-0">
+                    <div className="flex flex-col gap-5 w-full sm:w-[280px]">
+                        <button
+                            onClick={() => navigate('/dashboard')}
+                            className="bg-[#4a8b71] hover:bg-[#3d745e] text-white btn-text text-xl md:text-2xl px-8 py-4 rounded-xl shadow-[0_8px_20px_rgba(74,139,113,0.3)] hover:shadow-[0_12px_25px_rgba(74,139,113,0.4)] transition-all duration-300 hover:-translate-y-1 active:translate-y-0 w-full"
+                        >
+                            Upload Now
+                        </button>
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="bg-[#2c4c3b] hover:bg-[#1e3529] text-white btn-text text-xl md:text-2xl px-8 py-4 rounded-xl shadow-[0_8px_20px_rgba(44,76,59,0.3)] hover:shadow-[0_12px_25px_rgba(44,76,59,0.4)] transition-all duration-300 hover:-translate-y-1 active:translate-y-0 w-full"
+                        >
+                            Login
+                        </button>
                     </div>
                 </div>
             </main>
-
-            {/* Floating Feature Cards (bottom) */}
-            <div className="w-full max-w-7xl mx-auto px-6 pb-12 grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                {/* Card 1 */}
-                <div
-                    className="glass-pane p-6 rounded-xl flex flex-col gap-4 group hover:-translate-y-1 transition-transform duration-300">
-                    <div className="flex items-center justify-between">
-                        <div className="p-2 rounded-lg bg-white/5 text-blue-400">
-                            <span className="material-symbols-outlined">history_edu</span>
-                        </div>
-                        <span className="text-xs text-slate-400 font-mono">01</span>
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold text-white mb-2">Audit Trails</h3>
-                        <p className="text-sm text-slate-400">Complete, tamper-proof history of every action taken on
-                            your document.</p>
-                    </div>
-                </div>
-
-                {/* Card 2 */}
-                <div
-                    className="glass-pane p-6 rounded-xl flex flex-col gap-4 group hover:-translate-y-1 transition-transform duration-300">
-                    <div className="flex items-center justify-between">
-                        <div className="p-2 rounded-lg bg-white/5 text-purple-400">
-                            <span className="material-symbols-outlined">verified</span>
-                        </div>
-                        <span className="text-xs text-slate-400 font-mono">02</span>
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold text-white mb-2">Identity Verification</h3>
-                        <p className="text-sm text-slate-400">Bank-grade identity checks ensure signers are who they say
-                            they are.</p>
-                    </div>
-                </div>
-
-                {/* Card 3 */}
-                <div
-                    className="glass-pane p-6 rounded-xl flex flex-col gap-4 group hover:-translate-y-1 transition-transform duration-300">
-                    <div className="flex items-center justify-between">
-                        <div className="p-2 rounded-lg bg-white/5 text-emerald-400">
-                            <span className="material-symbols-outlined">encrypted</span>
-                        </div>
-                        <span className="text-xs text-slate-400 font-mono">03</span>
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold text-white mb-2">End-to-End Encryption</h3>
-                        <p className="text-sm text-slate-400">Documents are encrypted at rest and in transit with
-                            advanced keys.</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Decorative floating elements */}
-            <div
-                className="absolute top-20 right-20 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none pulse-blob"/>
-            <div
-                className="absolute bottom-20 left-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none pulse-blob"
-                style={{animationDelay: "1s"}}/>
         </div>
     );
 }
+
+export default LandingPage;
