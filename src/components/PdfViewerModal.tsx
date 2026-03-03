@@ -98,8 +98,10 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
                     {loading && <div className="text-center py-12">Loading PDF…</div>}
                     {!loading && pdfUrl && (
                         <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading="">
-                            <div className="flex justify-center">
-                                <Page pageNumber={page} width={800 * scale} renderAnnotationLayer={false} renderTextLayer={false} />
+                            <div className="flex justify-center overflow-x-auto pb-4 w-full">
+                                <div className="min-w-fit">
+                                    <Page pageNumber={page} width={Math.max(800 * scale, 320)} renderAnnotationLayer={false} renderTextLayer={false} className="shadow-lg" />
+                                </div>
                             </div>
                             <div className="flex justify-center gap-2 mt-3 mb-2">
                                 <Button variant="ghost" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</Button>

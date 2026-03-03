@@ -5,6 +5,7 @@ import { Document, Page } from 'react-pdf';
 import api from '../api/axios';
 import { SignaturePanel } from "../components/SignaturePanel";
 import SignatureOverlay from "../components/SignatureOverlay";
+import { Button } from "../ui/Button";
 
 type PlacedSignature = {
     id: string;
@@ -397,35 +398,54 @@ const SignPage: React.FC = () => {
 
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-[#f8fbf9] bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] bg-size-[24px_24px] overflow-hidden">
-            <aside className="hidden md:block w-24 shrink-0 border-r border-white/60 bg-white/40 backdrop-blur-md p-2 overflow-y-auto">
-                <div className="space-y-2">
-                    {Array.from({ length: numPages || 1 }, (_, idx) => {
-                        const pg = idx + 1;
-                        const has = pagesWithSigs.has(pg);
-                        return (
-                            <div key={pg} className={`cursor-pointer p-1 ${currentPage === pg ? 'ring-2 ring-emerald-300' : ''}`} onClick={() => setCurrentPage(pg)}>
-                                <div className="relative">
-                                    <div className="w-12 h-16 bg-gray-100 flex items-center justify-center text-xs text-gray-500">{pg}</div>
-                                    {has && <div className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">•</div>}
+            <aside className="w-full md:w-32 shrink-0 border-b md:border-b-0 md:border-r border-white/60 bg-white/20 backdrop-blur-md p-4 overflow-x-auto md:overflow-y-auto z-10 shadow-sm" style={{ touchAction: 'pan-x pan-y' }}>
+                {!pdfUrl && (
+                    <div className="flex flex-row md:flex-col gap-5 items-center pb-2 md:pb-0 pr-2 md:pr-0 w-max md:w-full">
+                        {Array.from({ length: numPages || 1 }, (_, idx) => {
+                            const pg = idx + 1;
+                            const has = pagesWithSigs.has(pg);
+                            return (
+                                <div key={pg} className={`cursor-pointer p-1.5 rounded-xl transition-all shrink-0 relative ${currentPage === pg ? 'ring-2 ring-[#a3f7b5] bg-white/40' : 'hover:bg-white/30'}`} onClick={() => setCurrentPage(pg)}>
+                                    <div className="shadow-sm rounded-lg overflow-hidden border border-white/60 w-[60px] h-[80px] bg-white/50 backdrop-blur-sm flex items-center justify-center text-sm font-medium text-teal-900">
+                                        {pg}
+                                    </div>
+                                    {has && <div className="absolute -top-1.5 -right-1.5 bg-teal-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md z-20 border-2 border-[#f8fbf9]">✓</div>}
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
+                {pdfUrl && (
+                    <Document file={pdfUrl} className="flex flex-row md:flex-col gap-5 items-center pb-2 md:pb-0 pr-2 md:pr-0 w-max md:w-full">
+                        {Array.from({ length: numPages || 1 }, (_, idx) => {
+                            const pg = idx + 1;
+                            const has = pagesWithSigs.has(pg);
+                            return (
+                                <div key={pg} className={`cursor-pointer p-1.5 rounded-xl transition-all shrink-0 relative ${currentPage === pg ? 'ring-2 ring-[#a3f7b5] bg-white/40 shadow-sm' : 'hover:bg-white/30'}`} onClick={() => setCurrentPage(pg)}>
+                                    <div className="shadow-sm rounded-lg overflow-hidden border border-white/60 w-[60px] h-[80px] bg-white flex items-center justify-center relative bg-clip-padding">
+                                        <Page pageNumber={pg} width={60} renderAnnotationLayer={false} renderTextLayer={false} className="pointer-events-none" />
+                                        <div className="absolute bottom-0 right-0 bg-black/40 text-white text-[9px] px-1 rounded-tl font-mono backdrop-blur-md">{pg}</div>
+                                    </div>
+                                    {has && <div className="absolute -top-1.5 -right-1.5 bg-teal-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md z-20 border-2 border-[#f8fbf9]">✓</div>}
+                                </div>
+                            );
+                        })}
+                    </Document>
+                )}
             </aside>
 
-            <main className="flex-1 p-4 overflow-auto" onClick={() => setSelectedId(null)}>
-                <div className="max-w-4xl mx-auto bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 p-4 relative shadow">
+            <main className="flex-1 p-4 md:p-8 overflow-auto flex flex-col items-center pb-32 md:pb-8" onClick={() => setSelectedId(null)}>
+                <div className="w-full max-w-4xl bg-white/20 backdrop-blur-sm rounded-2xl border border-white/60 p-4 sm:p-6 relative shadow-2xl">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0">
                         <div>
-                            <h2 className="text-lg font-semibold text-teal-900">Signing workspace</h2>
+                            <h2 className="text-xl font-semibold text-teal-950">Signing workspace</h2>
                             <div className="text-sm text-gray-600">Page {currentPage} / {numPages || '—'}</div>
                         </div>
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                            <button className="px-3 py-1 bg-white/50 backdrop-blur-md border border-white/60 hover:bg-white/80 transition-colors rounded text-teal-900 w-full sm:w-auto" onClick={() => navigate(-1)}>Back</button>
-                            <button className="px-3 py-1 bg-[#a3f7b5] text-teal-950 hover:bg-white/40 hover:backdrop-blur-md hover:border-white/60 border border-transparent transition-all rounded w-full sm:w-auto" onClick={onApply} disabled={loading}>
+                            <Button variant="ghost" className="w-full sm:w-auto" onClick={() => navigate(-1)}>Back</Button>
+                            <Button variant="primary" className="w-full sm:w-auto" onClick={onApply} disabled={loading}>
                                 {loading ? 'Applying…' : 'Apply'}
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
@@ -433,16 +453,16 @@ const SignPage: React.FC = () => {
                         {loading && <div>Loading…</div>}
                         {!loading && pdfUrl && (
                             <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess}>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <div style={{ display: 'flex', justifyContent: 'center' }} className="w-full overflow-x-auto pb-4 custom-scrollbar">
                                     <div
                                         ref={pageDomRef as any}
                                         id="pdf-page-wrapper"
-                                        style={{ position: 'relative', overflow: 'hidden' }}
-                                        className="shadow mb-4"
+                                        style={{ position: 'relative' }}
+                                        className="shadow-xl mb-4 min-w-[320px] mx-auto bg-white"
                                         onDragOver={(e) => e.preventDefault()}
                                         onDrop={onDropToPage}
                                     >
-                                        <Page pageNumber={currentPage} width={800} renderAnnotationLayer={false} renderTextLayer={false} />
+                                        <Page pageNumber={currentPage} width={pageBox ? Math.max(pageBox.width, 800) : 800} renderAnnotationLayer={false} renderTextLayer={false} />
                                         {pageBox && placed.map((p) => (
                                             p.page === currentPage ? (
                                                 <SignatureOverlay
