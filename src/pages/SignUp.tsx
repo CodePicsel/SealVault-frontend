@@ -41,8 +41,8 @@ export const SignUp: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#f8fbf9] bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] bg-size-[24px_24px] py-12 px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-md mx-auto">
-                <Header title="Join Us" subtitle="Start signing documents today" variant="auth" />
-                <div className="p-8 bg-white/70 backdrop-blur-md rounded-2xl border border-white/60 shadow-xl mt-4">
+                <Header title={<span className="text-3xl font-bold tracking-tight text-gray-800">SealVault</span>} subtitle="Join Us" variant="auth" />
+                <div className="p-6 sm:p-8 bg-white/25 backdrop-blur-lg rounded-2xl border border-white/60 shadow-2xl mt-4">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Create account</h2>
 
                     <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -91,8 +91,8 @@ export const SignUp: React.FC = () => {
                             )}
                         />
 
-                        <div className="flex items-center justify-between mt-4">
-                            <Button type="submit" disabled={isSubmitting} variant="primary">
+                        <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-4 mt-4 sm:mt-6">
+                            <Button type="submit" disabled={isSubmitting} variant="primary" className="w-full sm:w-auto">
                                 {isSubmitting ? 'Creating…' : 'Create account'}
                             </Button>
 
@@ -104,7 +104,15 @@ export const SignUp: React.FC = () => {
                             </div>
                         </div>
                     </form>
-                    <div className="mt-6">
+                    <div className="mt-8">
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-white/60"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-3 bg-transparent text-gray-600 font-medium">Or continue with</span>
+                            </div>
+                        </div>
                         <GoogleSignIn onSuccess={() => navigate('/')} />
                     </div>
                 </div>
