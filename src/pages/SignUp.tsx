@@ -39,11 +39,11 @@ export const SignUp: React.FC = () => {
         }
     }
     return (
-        <div className="min-h-screen bg-[#f8fbf9] bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] bg-size-[24px_24px] py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-[#f8fbf9] dark:bg-neutral-900 bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[24px_24px] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
             <div className="w-full max-w-md mx-auto">
                 <Header title={<span className="text-3xl font-bold tracking-tight text-gray-800">SealVault</span>} subtitle="Join Us" variant="auth" />
-                <div className="p-6 sm:p-8 bg-white/25 backdrop-blur-lg rounded-2xl border border-white/60 shadow-2xl mt-4">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Create account</h2>
+                <div className="p-6 sm:p-8 bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 shadow-2xl mt-4 transition-colors duration-300">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Create account</h2>
 
                     <form onSubmit={handleSubmit(onSubmit)} noValidate>
                         <Controller
@@ -96,9 +96,9 @@ export const SignUp: React.FC = () => {
                                 {isSubmitting ? 'Creating…' : 'Create account'}
                             </Button>
 
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-300">
                                 <span>Already have an account? </span>
-                                <Link to="/login" className="text-teal-600 hover:underline">
+                                <Link to="/login" className="text-teal-600 dark:text-teal-400 hover:underline">
                                     Sign In
                                 </Link>
                             </div>
@@ -107,10 +107,10 @@ export const SignUp: React.FC = () => {
                     <div className="mt-8">
                         <div className="relative mb-6">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-white/60"></div>
+                                <div className="w-full border-t border-white/60 dark:border-white/10 transition-colors duration-300"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-3 bg-transparent text-gray-600 font-medium">Or continue with</span>
+                                <span className="px-3 bg-transparent text-gray-600 dark:text-gray-400 font-medium transition-colors duration-300">Or continue with</span>
                             </div>
                         </div>
                         <GoogleSignIn onSuccess={() => navigate('/')} />

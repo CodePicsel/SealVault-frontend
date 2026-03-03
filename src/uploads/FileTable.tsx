@@ -14,12 +14,12 @@ export const FileTable: React.FC<Props> = ({ files, onPreview, onSign }) => {
     return (
         <div className="flex flex-col gap-3">
             {files.length === 0 && (
-                <div className="p-8 text-center text-gray-500 bg-white/60 backdrop-blur-md rounded-2xl border border-white/60">
+                <div className="p-8 text-center text-gray-500 bg-white/20 backdrop-blur-md rounded-2xl border border-white/60 shadow-2xl">
                     No files available.
                 </div>
             )}
             {files.map((f) => (
-                <div key={f._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-3 bg-white/80 border border-gray-200/80 rounded-[24px] shadow-sm hover:shadow-md transition-all gap-4 sm:gap-0">
+                <div key={f._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-3 bg-white/40 backdrop-blur-sm border border-white/60 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/60 transition-all gap-4 sm:gap-0">
                     <div className="flex-1 text-gray-700 font-semibold text-sm truncate px-0 sm:px-4 w-full sm:w-auto text-center sm:text-left">{f.originalName}</div>
 
                     <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-0 w-full sm:w-auto">

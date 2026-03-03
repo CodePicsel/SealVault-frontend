@@ -109,9 +109,9 @@ export const Dashboard: React.FC = () => {
 
                 {activeTab === 'uploads' && (
                     loading ? (
-                        <div className="bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 p-12 text-center text-gray-500 shadow-sm">Loading…</div>
+                        <div className="bg-white/20 backdrop-blur-md rounded-2xl border border-white/60 p-12 text-center text-gray-500 shadow-2xl">Loading…</div>
                     ) : (
-                        <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 shadow p-6">
+                        <div className="bg-white/20 backdrop-blur-md rounded-2xl border border-white/60 shadow-2xl p-6">
                             <FileTable
                                 files={files}
                                 onDownloadError={setError}

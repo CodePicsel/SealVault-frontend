@@ -83,7 +83,7 @@ const SignedResult: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#f8fbf9] bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] bg-size-[24px_24px] py-6 px-4">
-            <div className="w-full max-w-4xl mx-auto bg-white/25 backdrop-blur-md rounded-2xl border border-white/60 p-4 sm:p-6 relative shadow-2xl">
+            <div className="w-full max-w-4xl mx-auto bg-white/20 backdrop-blur-md rounded-2xl border border-white/60 p-4 sm:p-6 relative shadow-2xl">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-teal-900">Signed document</h2>
                     {/* Desktop Actions */}
@@ -128,7 +128,7 @@ const SignedResult: React.FC = () => {
                         {showMenu && (
                             <>
                                 <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
-                                <div className="absolute top-12 right-0 w-48 bg-white/70 backdrop-blur-xl border border-white/80 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col py-1">
+                                <div className="absolute top-12 right-0 w-48 bg-white/20 backdrop-blur-md border border-white/60 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col py-1">
                                     <button className="flex items-center w-full px-4 py-3 text-left hover:bg-white/50 transition-colors text-teal-900 font-medium" onClick={() => { onDownload(); setShowMenu(false); }}>
                                         <svg className="w-4 h-4 mr-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                         Download

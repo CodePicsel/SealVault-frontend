@@ -18,6 +18,7 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
     const [numPages, setNumPages] = useState(0);
     const [page, setPage] = useState(1);
     const [scale, setScale] = useState(1);
+    const [showMenu, setShowMenu] = useState(false);
 
     useEffect(() => {
         let objectUrl: string | null = null;
@@ -61,36 +62,80 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
                         <div className="text-sm text-gray-600">{page} / {numPages || '—'}</div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
-                        <Button variant="ghost" size="sm" className="flex-1 sm:flex-none font-bold text-lg" onClick={() => setScale(s => Math.max(0.5, s - 0.25))}>−</Button>
-                        <Button variant="ghost" size="sm" className="flex-1 sm:flex-none font-bold text-lg" onClick={() => setScale(s => s + 0.25)}>+</Button>
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
+                        {/* Desktop Actions */}
+                        <div className="hidden sm:flex items-center gap-2">
+                            <Button variant="ghost" size="sm" className="font-bold text-lg" onClick={() => setScale(s => Math.max(0.5, s - 0.25))}>−</Button>
+                            <Button variant="ghost" size="sm" className="font-bold text-lg" onClick={() => setScale(s => s + 0.25)}>+</Button>
 
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            className="flex-1 sm:flex-none shadow-md"
-                            onClick={() => file && onSign(file)}
-                            title="Sign this document"
-                        >
-                            Sign
-                        </Button>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                className="shadow-md"
+                                onClick={() => file && onSign(file)}
+                                title="Sign this document"
+                            >
+                                Sign
+                            </Button>
 
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            className="flex-1 sm:flex-none text-center shadow-md bg-linear-to-r from-teal-400/80 to-teal-500/80 hover:from-teal-400 hover:to-teal-500 hover:shadow-[0_8px_20px_rgba(45,212,191,0.4)] border-white/60 text-teal-950"
-                            onClick={() => {
-                                if (pdfUrl) {
-                                    window.open(pdfUrl, '_blank', 'noopener');
-                                } else if (file?.url) {
-                                    window.open(file.url, '_blank', 'noopener');
-                                }
-                            }}
-                        >
-                            Download
-                        </Button>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                className="text-center shadow-md bg-linear-to-r from-teal-400/80 to-teal-500/80 hover:from-teal-400 hover:to-teal-500 hover:shadow-[0_8px_20px_rgba(45,212,191,0.4)] border-white/60 text-teal-950"
+                                onClick={() => {
+                                    if (pdfUrl) {
+                                        window.open(pdfUrl, '_blank', 'noopener');
+                                    } else if (file?.url) {
+                                        window.open(file.url, '_blank', 'noopener');
+                                    }
+                                }}
+                            >
+                                Download
+                            </Button>
 
-                        <Button variant="danger" size="sm" className="flex-1 sm:flex-none" onClick={onClose}>Close</Button>
+                            <Button variant="danger" size="sm" onClick={onClose}>Close</Button>
+                        </div>
+
+                        {/* Mobile Actions Dropdown */}
+                        <div className="sm:hidden flex items-center gap-2 relative">
+                            <Button variant="ghost" size="sm" className="font-bold text-lg px-2" onClick={() => setScale(s => Math.max(0.5, s - 0.25))}>−</Button>
+                            <Button variant="ghost" size="sm" className="font-bold text-lg px-2" onClick={() => setScale(s => s + 0.25)}>+</Button>
+
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                className="shadow-md"
+                                onClick={() => file && onSign(file)}
+                            >
+                                Sign
+                            </Button>
+                            <Button variant="ghost" size="sm" className="px-2" onClick={() => setShowMenu(!showMenu)}>
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+                            </Button>
+
+                            {showMenu && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
+                                    <div className="absolute top-12 right-0 w-48 bg-white/70 backdrop-blur-xl border border-white/80 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col py-1">
+                                        <button className="flex items-center w-full px-4 py-3 text-left hover:bg-white/50 transition-colors text-teal-900 font-medium" onClick={() => {
+                                            if (pdfUrl) {
+                                                window.open(pdfUrl, '_blank', 'noopener');
+                                            } else if (file?.url) {
+                                                window.open(file.url, '_blank', 'noopener');
+                                            }
+                                            setShowMenu(false);
+                                        }}>
+                                            <svg className="w-4 h-4 mr-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                            Download
+                                        </button>
+                                        <button className="flex items-center w-full px-4 py-3 text-left hover:bg-red-50 transition-colors text-red-600 font-medium border-t border-white/40" onClick={() => { onClose(); setShowMenu(false); }}>
+                                            <svg className="w-4 h-4 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                            Close
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 

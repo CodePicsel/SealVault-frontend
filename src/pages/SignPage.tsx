@@ -435,7 +435,7 @@ const SignPage: React.FC = () => {
             </aside>
 
             <main className="flex-1 p-4 md:p-8 overflow-auto flex flex-col items-center pb-32 md:pb-8" onClick={() => setSelectedId(null)}>
-                <div className="w-full max-w-4xl bg-white/20 backdrop-blur-sm rounded-2xl border border-white/60 p-4 sm:p-6 relative shadow-2xl">
+                <div className="w-full max-w-4xl bg-white/20 backdrop-blur-md rounded-2xl border border-white/60 p-4 sm:p-6 relative shadow-2xl">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0">
                         <div>
                             <h2 className="text-xl font-semibold text-teal-950">Signing workspace</h2>
