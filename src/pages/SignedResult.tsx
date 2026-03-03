@@ -153,7 +153,7 @@ const SignedResult: React.FC = () => {
                         <div ref={containerRef} className="flex justify-center w-full">
                             <div className="w-full max-w-[800px] shadow-sm flex flex-col gap-4 rounded-xl">
                                 <Document file={url} onLoadSuccess={onDocumentLoadSuccess}>
-                                    {Array.from(new Array(numPages), (el, index) => (
+                                    {Array.from(new Array(numPages), (_, index) => (
                                         <div key={`page_container_${index}`} className="shadow-lg mb-4 rounded-xl overflow-hidden border border-white/60">
                                             <Page
                                                 pageNumber={index + 1}

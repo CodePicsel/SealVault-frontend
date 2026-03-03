@@ -37,7 +37,7 @@ async function getOrUploadSignature(dataUrl: string) {
     if (!dataUrl.startsWith('data:')) {
         return { id: urlToIdCache[dataUrl] || '', url: dataUrl };
     }
-    if (uploadCache[dataUrl]) {
+    if (dataUrl in uploadCache) {
         return uploadCache[dataUrl];
     }
     const uploadPromise = (async () => {
