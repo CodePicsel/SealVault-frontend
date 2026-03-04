@@ -3,15 +3,20 @@ import React, { useEffect, useRef, useState } from 'react';
 
 type Props = {
     id: string;
-    dataUrl: string;
+    dataUrl?: string; // image mode
+    placeholderLabel?: string; // prepare mode
+    type?: 'image' | 'placeholder'; // image for me/sign, placeholder for prepare
     pageBox: { width: number; height: number }; // dimensions of the page element
     initialLeft: number; // px relative to page top-left
     initialTop: number;
     initialWidth: number;
+    initialHeight?: number; // optional, mainly for placeholders
     selected: boolean;
     onSelect: (id: string) => void;
-    onUpdate: (id: string, left: number, top: number, width: number) => void;
+    onUpdate: (id: string, left: number, top: number, width: number, height?: number) => void;
     onRemove: (id: string) => void;
+    readonly?: boolean;
+    onClickPlaceholder?: () => void;
 };
 
 const MIN_WIDTH = 48;
@@ -19,20 +24,25 @@ const MIN_WIDTH = 48;
 const SignatureOverlay: React.FC<Props> = ({
     id,
     dataUrl,
+    placeholderLabel,
+    type = 'image',
     pageBox,
     initialLeft,
     initialTop,
     initialWidth,
+    initialHeight,
     selected,
     onSelect,
     onUpdate,
     onRemove,
+    readonly,
+    onClickPlaceholder,
 }) => {
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
 
     // position/size relative to page top-left (px)
-    const [pos, setPos] = useState({ left: initialLeft, top: initialTop, width: initialWidth, height: initialWidth * 0.4 });
+    const [pos, setPos] = useState({ left: initialLeft, top: initialTop, width: initialWidth, height: initialHeight || (initialWidth * 0.4) });
 
     // internal refs for dragging/resizing
     const dragging = useRef(false);
@@ -43,8 +53,9 @@ const SignatureOverlay: React.FC<Props> = ({
     const rafRef = useRef<number | null>(null);
     const pendingPos = useRef<{ left?: number; top?: number; width?: number; height?: number } | null>(null);
 
-    // compute initial natural ratio when image loads
+    // compute initial natural ratio when image loads (only for image type)
     useEffect(() => {
+        if (type !== 'image' || !dataUrl) return;
         const img = new Image();
         img.onload = () => {
             const ratio = img.naturalHeight / img.naturalWidth || 0.4;
@@ -60,7 +71,7 @@ const SignatureOverlay: React.FC<Props> = ({
         };
         img.src = dataUrl;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dataUrl, pageBox.width]);
+    }, [dataUrl, pageBox.width, type]);
 
     // helper: clamp so overlay stays fully inside page
     const clampLeft = (left: number, width: number) => Math.max(0, Math.min(left, Math.max(0, pageBox.width - width)));
@@ -87,6 +98,7 @@ const SignatureOverlay: React.FC<Props> = ({
 
     // pointer handlers
     const onPointerDown = (e: React.PointerEvent) => {
+        if (readonly) return;
         const target = e.target as HTMLElement;
         if (target.closest('[data-role="remove-btn"]')) {
             return;
@@ -121,17 +133,24 @@ const SignatureOverlay: React.FC<Props> = ({
             const top = clampTop(startPos.current.top + dy, pos.height);
             pendingPos.current = { left, top };
         } else if (resizing.current) {
-            // resize while keeping ratioRef
-            const startW = startPos.current.width;
-            const ratio = ratioRef.current || (startPos.current.height / Math.max(1, startW));
-            let newW = clampWidth(Math.round(startW + dx), startPos.current.left);
-            let newH = Math.round(newW * ratio);
-            // ensure bottom doesn't go off page
-            if (startPos.current.top + newH > pageBox.height) {
-                newH = pageBox.height - startPos.current.top;
-                newW = Math.max(MIN_WIDTH, Math.round(newH / ratio));
+            if (type === 'image') {
+                // resize while keeping ratioRef
+                const startW = startPos.current.width;
+                const ratio = ratioRef.current || (startPos.current.height / Math.max(1, startW));
+                let newW = clampWidth(Math.round(startW + dx), startPos.current.left);
+                let newH = Math.round(newW * ratio);
+                // ensure bottom doesn't go off page
+                if (startPos.current.top + newH > pageBox.height) {
+                    newH = pageBox.height - startPos.current.top;
+                    newW = Math.max(MIN_WIDTH, Math.round(newH / ratio));
+                }
+                pendingPos.current = { width: newW, height: newH };
+            } else {
+                // free resize for placeholders
+                const newW = clampWidth(Math.round(startPos.current.width + dx), startPos.current.left);
+                const newH = Math.max(24, Math.min(Math.round(startPos.current.height + dy), pageBox.height - startPos.current.top));
+                pendingPos.current = { width: newW, height: newH };
             }
-            pendingPos.current = { width: newW, height: newH };
         }
 
         scheduleCommit();
@@ -150,22 +169,29 @@ const SignatureOverlay: React.FC<Props> = ({
             const finalLeft = p.left ?? pos.left;
             const finalTop = p.top ?? pos.top;
             const finalWidth = p.width ?? pos.width;
+            const finalHeight = p.height ?? pos.height;
             // ensure final clamps
             const clampedLeft = clampLeft(finalLeft, finalWidth);
-            const clampedTop = clampTop(finalTop, pos.height);
+            const clampedTop = clampTop(finalTop, finalHeight);
             const clampedWidth = clampWidth(finalWidth, clampedLeft);
-            setPos({ left: clampedLeft, top: clampedTop, width: clampedWidth, height: Math.round(clampedWidth * (ratioRef.current || 0.4)) });
+            const clampedHeight = type === 'image' ? Math.round(clampedWidth * (ratioRef.current || 0.4)) : finalHeight;
+            setPos({ left: clampedLeft, top: clampedTop, width: clampedWidth, height: clampedHeight });
             pendingPos.current = null;
-            onUpdate(id, clampedLeft, clampedTop, clampedWidth);
+            onUpdate(id, clampedLeft, clampedTop, clampedWidth, clampedHeight);
         } else if (wasDragging) {
-            onUpdate(id, pos.left, pos.top, pos.width);
+            onUpdate(id, pos.left, pos.top, pos.width, pos.height);
         }
         e.preventDefault();
     };
 
     // click to select (but don't up-select when pointerup after drag)
     const onClick = (e: React.MouseEvent) => {
-        onSelect(id);
+        if (!readonly) {
+            onSelect(id);
+        }
+        if (type === 'placeholder' && onClickPlaceholder && !dragging.current && !resizing.current) {
+            onClickPlaceholder();
+        }
         e.stopPropagation();
     };
 
@@ -196,23 +222,34 @@ const SignatureOverlay: React.FC<Props> = ({
             onClick={onClick}
         >
             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                <img
-                    ref={imgRef}
-                    src={dataUrl}
-                    alt="signature"
-                    className=""
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        display: 'block',
-                        border: selected ? '2px dashed #0ea5a4' : '1px solid transparent',
-                        borderRadius: 4,
-                        background: 'rgba(255,255,255,0.0)'
-                    }}
-                />
+                {type === 'image' && dataUrl ? (
+                    <img
+                        ref={imgRef}
+                        src={dataUrl}
+                        alt="signature"
+                        className=""
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            display: 'block',
+                            border: selected && !readonly ? '2px dashed #0ea5a4' : readonly ? 'none' : '1px solid transparent',
+                            borderRadius: 4,
+                            background: 'rgba(255,255,255,0.0)'
+                        }}
+                    />
+                ) : (
+                    <div
+                        className={`w-full h-full flex items-center justify-center p-2 text-center text-xs sm:text-sm font-semibold border-2 rounded-md transition-colors ${selected && !readonly ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                            : 'border-amber-400 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                            } ${readonly ? 'cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-800/40' : ''}`}
+                    >
+                        {placeholderLabel || 'Signature'}
+                        {readonly && <div className="absolute -top-3 -right-3 bg-amber-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs animate-bounce shadow">↓</div>}
+                    </div>
+                )}
 
-                {selected && (
+                {selected && !readonly && (
                     <>
                         {/* delete button (small) */}
                         <button

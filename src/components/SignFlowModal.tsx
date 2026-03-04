@@ -11,6 +11,13 @@ type Props = {
     onClose: () => void;
 };
 
+export type SignerInput = {
+    id: string;
+    name: string;
+    email: string;
+    order: number;
+};
+
 const DEFAULT_PRESETS = ['J. Doe', 'Jane Doe', 'John Smith'];
 
 type PresetItem = {
@@ -91,7 +98,11 @@ const createInitialVariants = (name: string) => {
 
 const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
     const [step, setStep] = useState(1);
-    const [, setSignerType] = useState<'me' | 'several'>('me');
+    const [signerType, setSignerType] = useState<'me' | 'several'>('me');
+
+    const [signers, setSigners] = useState<SignerInput[]>([
+        { id: `signer-${Date.now()}-1`, name: '', email: '', order: 1 }
+    ]);
 
     const [activeTab, setActiveTab] = useState<'presets' | 'draw' | 'upload'>('presets');
 
@@ -162,10 +173,35 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
         onUpload(f);
     };
 
+    const addSigner = () => {
+        setSigners(s => [
+            ...s,
+            { id: `signer-${Date.now()}-${s.length + 1}`, name: '', email: '', order: s.length + 1 }
+        ]);
+    };
+
+    const removeSigner = (id: string) => {
+        setSigners(s => s.filter(sig => sig.id !== id).map((sig, idx) => ({ ...sig, order: idx + 1 })));
+    };
+
+    const updateSigner = (id: string, field: keyof SignerInput, value: string) => {
+        setSigners(s => s.map(sig => sig.id === id ? { ...sig, [field]: value } : sig));
+    };
+
     const goApply = () => {
         if (!file) return;
-        if (!selectedDataUrl) return;
-        navigate(`/sign/${file._id}`, { state: { signatureDataUrl: selectedDataUrl } });
+        if (signerType === 'me') {
+            if (!selectedDataUrl) return;
+            navigate(`/sign/${file._id}`, { state: { signatureDataUrl: selectedDataUrl, mode: 'sign' } });
+        } else {
+            // Validate signers
+            const valid = signers.every(s => s.name.trim() && s.email.trim());
+            if (!valid || signers.length === 0) {
+                alert("Please fill in name and email for all signers.");
+                return;
+            }
+            navigate(`/sign/${file._id}`, { state: { mode: 'prepare', signers } });
+        }
         onClose();
     };
 
@@ -192,7 +228,7 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
                     </>
                 )}
 
-                {step === 2 && (
+                {step === 2 && signerType === 'me' && (
                     <>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
                             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Create or choose a signature</h3>
@@ -276,6 +312,70 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
                                 title={!selectedDataUrl ? 'Select a signature first' : 'Apply & open editor'}
                             >
                                 Apply & open editor
+                            </Button>
+                        </div>
+                    </>
+                )}
+
+                {step === 2 && signerType === 'several' && (
+                    <>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
+                            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Add Signers</h3>
+                            <div className="flex gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => { setStep(1); }}>Back</Button>
+                                <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+                            </div>
+                        </div>
+                        <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                            Specify who needs to sign this document. We'll send them an email invite.
+                        </div>
+
+                        <div className="flex flex-col gap-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2 pb-2">
+                            {signers.map((num, idx) => (
+                                <div key={num.id} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center p-3 sm:p-2 bg-white/40 dark:bg-neutral-800/60 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-neutral-700 shadow-sm relative">
+                                    <div className="w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xs font-bold shrink-0">
+                                        {idx + 1}
+                                    </div>
+                                    <div className="flex-1 flex flex-col sm:flex-row gap-2 w-full">
+                                        <input
+                                            type="text"
+                                            placeholder="Name (e.g. John Doe)"
+                                            autoFocus={idx > 0}
+                                            value={num.name}
+                                            onChange={(e) => updateSigner(num.id, 'name', e.target.value)}
+                                            className="border border-gray-300 dark:border-neutral-600 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-sm p-2 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-[#a3f7b5] dark:focus:ring-teal-500 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm"
+                                        />
+                                        <input
+                                            type="email"
+                                            placeholder="Email address"
+                                            value={num.email}
+                                            onChange={(e) => updateSigner(num.id, 'email', e.target.value)}
+                                            className="border border-gray-300 dark:border-neutral-600 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-sm p-2 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-[#a3f7b5] dark:focus:ring-teal-500 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm"
+                                        />
+                                    </div>
+                                    {signers.length > 1 && (
+                                        <button onClick={() => removeSigner(num.id)} className="absolute top-2 right-2 sm:static sm:top-0 sm:right-0 p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Remove signer">
+                                            ✕
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-3">
+                            <Button variant="ghost" size="sm" onClick={addSigner} className="text-teal-700 dark:text-teal-400 font-medium">
+                                + Add another signer
+                            </Button>
+                        </div>
+
+                        <div className="mt-6 flex flex-wrap justify-end gap-2 border-t border-gray-100 dark:border-neutral-800 pt-4">
+                            <Button variant="ghost" className="w-full sm:w-auto" onClick={() => { setStep(1); }}>Back</Button>
+                            <Button
+                                variant="primary"
+                                className="w-full sm:w-auto"
+                                onClick={goApply}
+                            >
+                                Continue to document
                             </Button>
                         </div>
                     </>

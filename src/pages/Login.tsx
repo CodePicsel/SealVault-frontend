@@ -1,6 +1,6 @@
 // src/pages/Login.tsx
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import api from '../api/axios';
@@ -16,8 +16,11 @@ type LoginResponse = { token: string; user: User };
 
 export const Login: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login } = useAuth();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const from = location.state?.from?.pathname + (location.state?.from?.search || '') || '/';
 
     const {
         control,
@@ -37,7 +40,7 @@ export const Login: React.FC = () => {
             });
             // successful login
             login(resp.data.token, resp.data.user);
-            navigate('/', { replace: true });
+            navigate(from, { replace: true });
         } catch (err: any) {
             // network / CORS / timeout
             if (err?.isNetwork || err?.code === 'ECONNABORTED') {
@@ -129,7 +132,7 @@ export const Login: React.FC = () => {
                                 <span className="px-3 bg-transparent text-gray-600 dark:text-gray-400 font-medium transition-colors duration-300">Or continue with</span>
                             </div>
                         </div>
-                        <GoogleSignIn onSuccess={() => navigate('/')} />
+                        <GoogleSignIn onSuccess={() => navigate(from, { replace: true })} />
                     </div>
                 </div>
             </div>

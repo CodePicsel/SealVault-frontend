@@ -9,6 +9,7 @@ import { Dashboard } from './pages/Dashboard';
 import SignPage from './pages/SignPage';
 import SignedResult from "./pages/SignedResult.tsx";
 import { LandingPage } from './pages/LandingPage';
+import { PublicSignPage } from './pages/PublicSignPage';
 
 const App: React.FC = () => {
     return (
@@ -21,6 +22,14 @@ const App: React.FC = () => {
                     <Route path="/" element={<LandingPage />} />
 
                     {/* Protected routes */}
+                    <Route
+                        path="/sign/public/:inviteToken"
+                        element={
+                            <ProtectedRoute>
+                                <PublicSignPage />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route
                         path="/dashboard"
                         element={

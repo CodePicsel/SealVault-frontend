@@ -4,17 +4,23 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
 import api from '../api/axios';
 import { SignaturePanel } from "../components/SignaturePanel";
+import { SignerFieldsPanel } from "../components/SignerFieldsPanel";
+import type { SignerInput } from "../components/SignFlowModal";
 import SignatureOverlay from "../components/SignatureOverlay";
 import { Button } from "../ui/Button";
 
 type PlacedSignature = {
     id: string;
     signatureId?: string | null; // DB id after upload
-    dataUrl: string;              // data:... or remote url
+    dataUrl?: string;              // data:... or remote url
+    type?: 'image' | 'placeholder'; // image for signing, placeholder for prepare mode
+    signerEmail?: string;         // for prepare mode
+    placeholderLabel?: string;    // for prepare mode
     page: number;
     left: number;                 // px
     top: number;                  // px
     width: number;                // px
+    height?: number;              // px
     uploading?: boolean;
     saved?: boolean;              // persisted to /signatures
 };
@@ -59,7 +65,14 @@ const SignPage: React.FC = () => {
     const { id } = useParams<{ id: string }>(); // fileId
     const location = useLocation();
     const navigate = useNavigate();
-    const state = location.state as { signatureDataUrl?: string | undefined } | undefined;
+    const state = location.state as {
+        signatureDataUrl?: string;
+        mode?: 'sign' | 'prepare';
+        signers?: SignerInput[];
+    } | undefined;
+
+    const isPrepareMode = state?.mode === 'prepare';
+    const signers = state?.signers || [];
 
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -70,7 +83,8 @@ const SignPage: React.FC = () => {
     const [placed, setPlaced] = useState<PlacedSignature[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    const [pendingSignatureUrl, setPendingSignatureUrl] = useState<string | null>(null); // for queued auto-place
+    const [pendingSignatureUrl, setPendingSignatureUrl] = useState<string | null>(null); // for queued auto-place image
+    const [pendingSignerPlaceholder, setPendingSignerPlaceholder] = useState<{ signerId: string; email: string } | null>(null); // queued auto-place placeholder
     const [pageBox, setPageBox] = useState<{ width: number; height: number } | null>(null);
     const pageDomRef = useRef<HTMLDivElement | null>(null);
 
@@ -235,31 +249,65 @@ const SignPage: React.FC = () => {
         }
     }, [pageBox, currentPage, replaceAvailableSignature]);
 
+    // place a signer placeholder visually on the page
+    const startPlacingPlaceholder = useCallback((signerId: string, email: string, boxOverride?: { width: number; height: number } | null) => {
+        const box = boxOverride || pageBox;
+        if (!box) {
+            setPendingSignerPlaceholder({ signerId, email });
+            return;
+        }
+
+        const initialWidth = Math.round(box.width * 0.22);
+        const initialHeight = Math.round(box.height * 0.08);
+        const left = Math.round((box.width - initialWidth) / 2);
+        const top = Math.round((box.height - initialHeight) / 2);
+
+        const newId = `placeholder-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+        const signer = signers.find(s => s.id === signerId || s.email === email);
+        const label = signer ? `${signer.name || signer.email}` : email;
+
+        const newSig: PlacedSignature = {
+            id: newId,
+            type: 'placeholder',
+            signerEmail: email,
+            placeholderLabel: label,
+            page: currentPage,
+            left,
+            top,
+            width: initialWidth,
+            height: initialHeight,
+            saved: false
+        };
+        setPlaced(prev => [...prev, newSig]);
+        setSelectedId(newId);
+    }, [pageBox, currentPage, signers]);
+
     // auto-place pending queued signature once measurements ready
     useEffect(() => {
-        if (pendingSignatureUrl && pageBox) {
+        if (pendingSignatureUrl && pageBox && !isPrepareMode) {
             startPlacing(pendingSignatureUrl, pageBox);
             setPendingSignatureUrl(null);
         }
-    }, [pageBox, pendingSignatureUrl, startPlacing]);
+        if (pendingSignerPlaceholder && pageBox && isPrepareMode) {
+            startPlacingPlaceholder(pendingSignerPlaceholder.signerId, pendingSignerPlaceholder.email, pageBox);
+            setPendingSignerPlaceholder(null);
+        }
+    }, [pageBox, pendingSignatureUrl, pendingSignerPlaceholder, startPlacing, startPlacingPlaceholder, isPrepareMode]);
 
     // helpers to update and remove placements (passed to SignatureOverlay)
-    const updatePlacement = (id: string, left: number, top: number, width: number) => {
-        setPlaced(prev => prev.map(s => s.id === id ? { ...s, left, top, width } : s));
+    const updatePlacement = (placementId: string, left: number, top: number, width: number, height?: number) => {
+        setPlaced(prev => prev.map(s => s.id === placementId ? { ...s, left, top, width, height: height ?? s.height } : s));
     };
     const removePlacement = (id: string) => {
         setPlaced(prev => prev.filter(s => s.id !== id));
         setSelectedId(prev => prev === id ? null : prev);
     };
 
-    // main Apply flow:
-    // 1) ensure uploads finished (upload any remaining data: images synchronously),
-    // 2) for each placement that is not saved -> POST /api/uploads/:id/signatures
-    // 3) then POST /api/uploads/:id/apply-signatures
+    // main Apply flow (Prepare Mode OR Sign Mode):
     const onApply = async () => {
         if (!id) return;
         if ((placed.length) === 0) {
-            alert('Place at least one signature');
+            alert('Place at least one signature/field');
             return;
         }
         const box = pageBox;
@@ -267,130 +315,189 @@ const SignPage: React.FC = () => {
 
         setLoading(true);
         try {
-            // 0) Wait smalles for background uploads to finish (gentle wait)
-            const waitUntilUploadsFinish = async (timeoutMs = 10_000) => {
-                const end = Date.now() + timeoutMs;
-                while (Date.now() < end) {
-                    const anyUploading = placed.some(p => p.uploading);
-                    if (!anyUploading) return;
-                    await new Promise(r => setTimeout(r, 200));
-                }
-            };
-            await waitUntilUploadsFinish(10_000);
-
-            let currentPlaced = [...placed];
-
-            // 1) Sync upload any remaining (in case they didn't finish gracefully)
-            for (let i = 0; i < currentPlaced.length; i++) {
-                const p = currentPlaced[i];
-                if (!p.signatureId && p.dataUrl && p.dataUrl.startsWith('data:')) {
-                    setPlaced(prev => prev.map(it => it.id === p.id ? { ...it, uploading: true } : it));
-                    try {
-                        const uploaded = await getOrUploadSignature(p.dataUrl);
-                        const updatedP = { ...p, signatureId: uploaded.id, dataUrl: uploaded.url, uploading: false };
-                        currentPlaced[i] = updatedP;
-                        setPlaced(prev => prev.map(it => it.id === p.id ? updatedP : it));
-                        replaceAvailableSignature(p.dataUrl, uploaded.url);
-                    } catch (err) {
-                        setPlaced(prev => prev.map(it => it.id === p.id ? { ...it, uploading: false } : it));
-                        throw new Error('Failed to upload one or more signatures. Try again.');
-                    }
-                }
-            }
-
-            // 2) POST each placement to /api/uploads/:id/signatures if not already saved
-            for (const p of currentPlaced) {
-                if (p.saved) continue; // skip already saved ones
-
-                const imageId = p.signatureId || urlToIdCache[p.dataUrl] || (p.dataUrl.split('/').pop()?.split('.')[0]);
-                if (!imageId) {
-                    throw new Error('Missing signature image id for a placement');
-                }
-
-                const payload = {
-                    imageId: imageId,
+            if (isPrepareMode) {
+                // Sender mode: create sign request and send invites
+                // 1) format fields
+                const fields = placed.map(p => ({
+                    signerEmail: p.signerEmail,
                     page: p.page,
                     xRel: Number((p.left / box.width).toFixed(6)),
                     yRel: Number((p.top / box.height).toFixed(6)),
                     widthRel: Number((p.width / box.width).toFixed(6)),
-                    rotation: 0
+                    heightRel: p.height ? Number((p.height / box.height).toFixed(6)) : 0.08,
+                    required: true
+                }));
+
+                const payload = {
+                    fileId: id,
+                    title: 'Document for signing',
+                    message: 'Please review and sign this document.',
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+                    signers: signers.map(s => ({ name: s.name, email: s.email, order: s.order })),
+                    fields
                 };
-                try {
-                    await api.post(`/api/uploads/${id}/signatures`, payload);
-                    // mark placement as saved
-                    setPlaced(prev => prev.map(it => it.id === p.id ? { ...it, saved: true } : it));
-                } catch (err: any) {
-                    console.error('Failed to persist placement', err);
-                    throw new Error(err?.response?.data?.message || 'Failed to save signature placement');
+
+                const resp = await api.post('/api/sign-requests', payload);
+                const reqId = resp.data.id || (resp.data.data && resp.data.data.id) || resp.data._id;
+
+                if (reqId) {
+                    await api.post(`/api/sign-requests/${reqId}/send-invites`);
                 }
-            }
 
-            // 3) Call apply-signatures
-            const applyResp = await api.post(`/api/uploads/${id}/apply-signatures`);
-            const signedUrl = applyResp.data?.signed?.url || applyResp.data?.signedUrl || applyResp.data?.signed?.storagePath ? applyResp.data?.signed?.url : applyResp.data?.signed?.url || applyResp.data?.url || null;
+                alert("Sign request created and invites sent!");
+                navigate('/dashboard');
 
-            if (signedUrl) {
-                navigate(`/signed/${id}`, { state: { url: signedUrl } });
-            } else if (applyResp.data?.file) {
-                const fileDoc = applyResp.data.file;
-                const lastSigned = fileDoc.signedVersions && fileDoc.signedVersions.length ? fileDoc.signedVersions[fileDoc.signedVersions.length - 1] : null;
-                const url = lastSigned?.url || lastSigned?.storagePath || null;
-                navigate(`/signed/${id}`, { state: { url } });
             } else {
-                navigate(`/signed/${id}`);
+                // 0) Wait smalles for background uploads to finish (gentle wait)
+                const waitUntilUploadsFinish = async (timeoutMs = 10_000) => {
+                    const end = Date.now() + timeoutMs;
+                    while (Date.now() < end) {
+                        const anyUploading = placed.some(p => p.uploading);
+                        if (!anyUploading) return;
+                        await new Promise(r => setTimeout(r, 200));
+                    }
+                };
+                await waitUntilUploadsFinish(10_000);
+
+                let currentPlaced = [...placed];
+
+                // 1) Sync upload any remaining (in case they didn't finish gracefully)
+                for (let i = 0; i < currentPlaced.length; i++) {
+                    const p = currentPlaced[i];
+                    if (p.type === 'placeholder') continue;
+
+                    if (!p.signatureId && p.dataUrl && p.dataUrl.startsWith('data:')) {
+                        setPlaced(prev => prev.map(it => it.id === p.id ? { ...it, uploading: true } : it));
+                        try {
+                            const uploaded = await getOrUploadSignature(p.dataUrl);
+                            const updatedP = { ...p, signatureId: uploaded.id, dataUrl: uploaded.url, uploading: false };
+                            currentPlaced[i] = updatedP;
+                            setPlaced(prev => prev.map(it => it.id === p.id ? updatedP : it));
+                            replaceAvailableSignature(p.dataUrl, uploaded.url);
+                        } catch (err) {
+                            setPlaced(prev => prev.map(it => it.id === p.id ? { ...it, uploading: false } : it));
+                            throw new Error('Failed to upload one or more signatures. Try again.');
+                        }
+                    }
+                }
+
+                // 2) POST each placement to /api/uploads/:id/signatures if not already saved
+                for (const p of currentPlaced) {
+                    if (p.saved || p.type === 'placeholder') continue; // skip already saved or placeholders
+
+                    const imageId = p.signatureId || (p.dataUrl ? urlToIdCache[p.dataUrl] || (p.dataUrl.split('/').pop()?.split('.')[0]) : null);
+                    if (!imageId) {
+                        throw new Error('Missing signature image id for a placement');
+                    }
+
+                    const payload = {
+                        imageId: imageId,
+                        page: p.page,
+                        xRel: Number((p.left / box.width).toFixed(6)),
+                        yRel: Number((p.top / box.height).toFixed(6)),
+                        widthRel: Number((p.width / box.width).toFixed(6)),
+                        rotation: 0
+                    };
+                    try {
+                        await api.post(`/api/uploads/${id}/signatures`, payload);
+                        // mark placement as saved
+                        setPlaced(prev => prev.map(it => it.id === p.id ? { ...it, saved: true } : it));
+                    } catch (err: any) {
+                        console.error('Failed to persist placement', err);
+                        throw new Error(err?.response?.data?.message || 'Failed to save signature placement');
+                    }
+                }
+
+                // 3) Call apply-signatures
+                const applyResp = await api.post(`/api/uploads/${id}/apply-signatures`);
+                const signedUrl = applyResp.data?.signed?.url || applyResp.data?.signedUrl || applyResp.data?.signed?.storagePath ? applyResp.data?.signed?.url : applyResp.data?.signed?.url || applyResp.data?.url || null;
+
+                if (signedUrl) {
+                    navigate(`/signed/${id}`, { state: { url: signedUrl } });
+                } else if (applyResp.data?.file) {
+                    const fileDoc = applyResp.data.file;
+                    const lastSigned = fileDoc.signedVersions && fileDoc.signedVersions.length ? fileDoc.signedVersions[fileDoc.signedVersions.length - 1] : null;
+                    const url = lastSigned?.url || lastSigned?.storagePath || null;
+                    navigate(`/signed/${id}`, { state: { url } });
+                } else {
+                    navigate(`/signed/${id}`);
+                }
             }
         } catch (err: any) {
             console.error('Apply flow error', err);
-            alert(err?.message || 'Apply failed');
+            alert(err?.response?.data?.message || err?.message || 'Apply failed');
         } finally {
             setLoading(false);
         }
     };
 
-    // Custom drop handler for the SignaturePanel events
+    // Custom drop handler for the SignaturePanel/SignerFieldsPanel events
     useEffect(() => {
         const handleCustomDrop = (e: Event) => {
             const ce = e as CustomEvent<{ dataUrl: string, clientX: number, clientY: number }>;
-            const { dataUrl, clientX, clientY } = ce.detail;
+            // We differentiate by event type since the custom event names are different
+            if (e.type === 'signatureDrop' && !isPrepareMode) {
+                const { dataUrl, clientX, clientY } = ce.detail;
 
-            if (!pageDomRef.current || !pageBox) return;
-            const rect = pageDomRef.current.getBoundingClientRect();
+                if (!pageDomRef.current || !pageBox) return;
+                const rect = pageDomRef.current.getBoundingClientRect();
 
-            if (
-                clientX >= rect.left &&
-                clientX <= rect.right &&
-                clientY >= rect.top &&
-                clientY <= rect.bottom
-            ) {
-                const dropX = clientX - rect.left;
-                const dropY = clientY - rect.top;
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    const dropX = clientX - rect.left;
+                    const dropY = clientY - rect.top;
 
-                const boxWidth = pageBox.width;
-                const initialWidth = Math.round(boxWidth * 0.3);
-                const left = Math.round(dropX - initialWidth / 2);
-                const top = Math.round(dropY - (initialWidth * 0.3) / 2);
-                const newId = `sig-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
-                const newSigId = urlToIdCache[dataUrl] || null;
+                    const boxWidth = pageBox.width;
+                    const initialWidth = Math.round(boxWidth * 0.3);
+                    const left = Math.round(dropX - initialWidth / 2);
+                    const top = Math.round(dropY - (initialWidth * 0.3) / 2);
+                    const newId = `sig-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+                    const newSigId = urlToIdCache[dataUrl] || null;
 
-                setPlaced(p => [...p, { id: newId, signatureId: newSigId, dataUrl, page: currentPage, left, top, width: initialWidth, uploading: dataUrl.startsWith('data:') }]);
-                setSelectedId(newId);
+                    setPlaced(p => [...p, { id: newId, type: 'image', signatureId: newSigId, dataUrl, page: currentPage, left, top, width: initialWidth, uploading: dataUrl.startsWith('data:') }]);
+                    setSelectedId(newId);
 
-                if (dataUrl.startsWith('data:')) {
-                    getOrUploadSignature(dataUrl).then(uploaded => {
-                        setPlaced(prev => prev.map(it => it.id === newId ? { ...it, signatureId: uploaded.id, dataUrl: uploaded.url, uploading: false } : it));
-                        replaceAvailableSignature(dataUrl, uploaded.url);
-                    }).catch(err => {
-                        console.error('Upload on custom drop failed', err);
-                        setPlaced(prev => prev.map(it => it.id === newId ? { ...it, uploading: false } : it));
-                        alert('Failed to upload signature');
-                    });
+                    if (dataUrl.startsWith('data:')) {
+                        getOrUploadSignature(dataUrl).then(uploaded => {
+                            setPlaced(prev => prev.map(it => it.id === newId ? { ...it, signatureId: uploaded.id, dataUrl: uploaded.url, uploading: false } : it));
+                            replaceAvailableSignature(dataUrl, uploaded.url);
+                        }).catch(err => {
+                            console.error('Upload on custom drop failed', err);
+                            setPlaced(prev => prev.map(it => it.id === newId ? { ...it, uploading: false } : it));
+                            alert('Failed to upload signature');
+                        });
+                    }
+                }
+            } else if (e.type === 'signerFieldDrop' && isPrepareMode) {
+                const { signerId, email, clientX, clientY } = (e as CustomEvent).detail;
+                if (!pageDomRef.current || !pageBox) return;
+                const rect = pageDomRef.current.getBoundingClientRect();
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    const dropX = clientX - rect.left;
+                    const dropY = clientY - rect.top;
+
+                    const boxWidth = pageBox.width;
+                    const initialWidth = Math.round(boxWidth * 0.22);
+                    const initialHeight = Math.round(pageBox.height * 0.08);
+                    const left = Math.round(dropX - initialWidth / 2);
+                    const top = Math.round(dropY - initialHeight / 2);
+                    const newId = `placeholder-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+
+                    const signer = signers.find((s: SignerInput) => s.id === signerId || s.email === email);
+                    const label = signer ? `${signer.name || signer.email}` : email;
+
+                    setPlaced(p => [...p, { id: newId, type: 'placeholder', signerEmail: email, placeholderLabel: label, page: currentPage, left, top, width: initialWidth, height: initialHeight }]);
+                    setSelectedId(newId);
                 }
             }
         };
 
         window.addEventListener('signatureDrop', handleCustomDrop);
-        return () => window.removeEventListener('signatureDrop', handleCustomDrop);
-    }, [currentPage, pageBox, replaceAvailableSignature]);
+        window.addEventListener('signerFieldDrop', handleCustomDrop);
+        return () => {
+            window.removeEventListener('signatureDrop', handleCustomDrop);
+            window.removeEventListener('signerFieldDrop', handleCustomDrop);
+        };
+    }, [currentPage, pageBox, replaceAvailableSignature, isPrepareMode, signers]);
 
     // HTML5 drop handler (just in case they drag an image natively)
     const onDropToPage = (e: React.DragEvent) => {
@@ -471,7 +578,7 @@ const SignPage: React.FC = () => {
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                             <Button variant="ghost" className="w-full sm:w-auto" onClick={() => navigate(-1)}>Back</Button>
                             <Button variant="primary" className="w-full sm:w-auto" onClick={onApply} disabled={loading}>
-                                {loading ? 'Applying…' : 'Apply'}
+                                {loading ? 'Applying…' : isPrepareMode ? 'Send Request' : 'Apply'}
                             </Button>
                         </div>
                     </div>
@@ -497,10 +604,13 @@ const SignPage: React.FC = () => {
                                                         key={p.id}
                                                         id={p.id}
                                                         dataUrl={p.dataUrl}
+                                                        type={p.type}
+                                                        placeholderLabel={p.placeholderLabel}
                                                         pageBox={pageBox}
                                                         initialLeft={p.left}
                                                         initialTop={p.top}
                                                         initialWidth={p.width}
+                                                        initialHeight={p.height}
                                                         selected={selectedId === p.id}
                                                         onSelect={setSelectedId}
                                                         onUpdate={updatePlacement}
@@ -517,13 +627,22 @@ const SignPage: React.FC = () => {
                 </div>
             </main>
 
-            <SignaturePanel
-                signatures={availableSignatures}
-                onStartPlace={(dataUrl) => {
-                    setAvailableSignatures(prev => prev.includes(dataUrl) ? prev : [dataUrl, ...prev]);
-                    startPlacing(dataUrl);
-                }}
-            />
+            {isPrepareMode ? (
+                <SignerFieldsPanel
+                    signers={signers}
+                    onStartPlace={(signerId, email) => {
+                        startPlacingPlaceholder(signerId, email);
+                    }}
+                />
+            ) : (
+                <SignaturePanel
+                    signatures={availableSignatures}
+                    onStartPlace={(dataUrl) => {
+                        setAvailableSignatures(prev => prev.includes(dataUrl) ? prev : [dataUrl, ...prev]);
+                        startPlacing(dataUrl);
+                    }}
+                />
+            )}
         </div>
     );
 };
