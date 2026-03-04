@@ -54,12 +54,12 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-slate-900/5" onClick={onClose} />
-            <div className="relative z-10 w-[95vw] sm:w-[90vw] max-w-5xl max-h-[90vh] bg-white/20 backdrop-blur-md border border-white/60 shadow-2xl rounded-2xl overflow-hidden flex flex-col">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b border-white/40 gap-4 sm:gap-0">
+            <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/60 transition-colors duration-300" onClick={onClose} />
+            <div className="relative z-10 w-[95vw] sm:w-[90vw] max-w-5xl max-h-[90vh] bg-white/20 dark:bg-neutral-800/80 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-2xl rounded-2xl overflow-hidden flex flex-col transition-colors duration-300">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b border-white/40 dark:border-white/10 gap-4 sm:gap-0">
                     <div>
-                        <div className="font-semibold break-all text-gray-800">{file?.originalName ?? 'Document'}</div>
-                        <div className="text-sm text-gray-600">{page} / {numPages || '—'}</div>
+                        <div className="font-semibold break-all text-gray-800 dark:text-gray-100">{file?.originalName ?? 'Document'}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{page} / {numPages || '—'}</div>
                     </div>
 
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
@@ -116,8 +116,8 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
                             {showMenu && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
-                                    <div className="absolute top-12 right-0 w-48 bg-white/70 backdrop-blur-xl border border-white/80 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col py-1">
-                                        <button className="flex items-center w-full px-4 py-3 text-left hover:bg-white/50 transition-colors text-teal-900 font-medium" onClick={() => {
+                                    <div className="absolute top-12 right-0 w-48 bg-white/70 dark:bg-neutral-800/80 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col py-1 transition-colors duration-300">
+                                        <button className="flex items-center w-full px-4 py-3 text-left hover:bg-white/50 dark:hover:bg-neutral-700/50 transition-colors text-teal-900 dark:text-teal-100 font-medium" onClick={() => {
                                             if (pdfUrl) {
                                                 window.open(pdfUrl, '_blank', 'noopener');
                                             } else if (file?.url) {
@@ -125,11 +125,11 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
                                             }
                                             setShowMenu(false);
                                         }}>
-                                            <svg className="w-4 h-4 mr-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                            <svg className="w-4 h-4 mr-3 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                             Download
                                         </button>
-                                        <button className="flex items-center w-full px-4 py-3 text-left hover:bg-red-50 transition-colors text-red-600 font-medium border-t border-white/40" onClick={() => { onClose(); setShowMenu(false); }}>
-                                            <svg className="w-4 h-4 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                        <button className="flex items-center w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors text-red-600 dark:text-red-400 font-medium border-t border-white/40 dark:border-white/10" onClick={() => { onClose(); setShowMenu(false); }}>
+                                            <svg className="w-4 h-4 mr-3 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                             Close
                                         </button>
                                     </div>
@@ -139,20 +139,36 @@ const PdfViewerModalSimple: React.FC<Props> = ({ open, file, onClose, onSign }) 
                     </div>
                 </div>
 
-                <div className="p-4 overflow-auto" style={{ height: 'calc(90vh - 88px)' }}>
-                    {loading && <div className="text-center py-12">Loading PDF…</div>}
+                <div className="flex-1 relative flex flex-col overflow-hidden" style={{ height: 'calc(90vh - 88px)' }}>
+                    {loading && <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading PDF…</div>}
                     {!loading && pdfUrl && (
-                        <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading="">
-                            <div className="flex justify-center overflow-x-auto pb-4 w-full">
-                                <div className="min-w-fit">
-                                    <Page pageNumber={page} width={Math.max(800 * scale, 320)} renderAnnotationLayer={false} renderTextLayer={false} className="shadow-lg" />
+                        <>
+                            {/* Navigation Arrows positioned absolutely */}
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page <= 1}
+                                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/60 dark:bg-neutral-800/90 backdrop-blur-xl border border-white/60 dark:border-white/20 shadow-xl disabled:opacity-0 disabled:pointer-events-none hover:bg-white/80 dark:hover:bg-neutral-700/90 transition-all text-teal-900 dark:text-teal-100"
+                            >
+                                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <button
+                                onClick={() => setPage(p => Math.min(numPages, p + 1))}
+                                disabled={page >= numPages || numPages === 0}
+                                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/60 dark:bg-neutral-800/90 backdrop-blur-xl border border-white/60 dark:border-white/20 shadow-xl disabled:opacity-0 disabled:pointer-events-none hover:bg-white/80 dark:hover:bg-neutral-700/90 transition-all text-teal-900 dark:text-teal-100"
+                            >
+                                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                            </button>
+
+                            <div className="w-full h-full overflow-auto custom-scrollbar relative z-10 pt-4 pb-8">
+                                <div className="min-w-fit w-full flex justify-center px-4 sm:px-20">
+                                    <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading="">
+                                        <div className="pb-8">
+                                            <Page pageNumber={page} width={Math.max(800 * scale, 320)} renderAnnotationLayer={false} renderTextLayer={false} className="shadow-lg dark:opacity-90 transition-opacity" />
+                                        </div>
+                                    </Document>
                                 </div>
                             </div>
-                            <div className="flex justify-center gap-2 mt-3 mb-2">
-                                <Button variant="ghost" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</Button>
-                                <Button variant="ghost" size="sm" onClick={() => setPage(p => Math.min(numPages, p + 1))}>Next</Button>
-                            </div>
-                        </Document>
+                        </>
                     )}
                 </div>
             </div>

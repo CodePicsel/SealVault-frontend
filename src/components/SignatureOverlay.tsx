@@ -17,17 +17,17 @@ type Props = {
 const MIN_WIDTH = 48;
 
 const SignatureOverlay: React.FC<Props> = ({
-                                               id,
-                                               dataUrl,
-                                               pageBox,
-                                               initialLeft,
-                                               initialTop,
-                                               initialWidth,
-                                               selected,
-                                               onSelect,
-                                               onUpdate,
-                                               onRemove,
-                                           }) => {
+    id,
+    dataUrl,
+    pageBox,
+    initialLeft,
+    initialTop,
+    initialWidth,
+    selected,
+    onSelect,
+    onUpdate,
+    onRemove,
+}) => {
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
 
@@ -200,7 +200,7 @@ const SignatureOverlay: React.FC<Props> = ({
                     ref={imgRef}
                     src={dataUrl}
                     alt="signature"
-                    draggable={false}
+                    className=""
                     style={{
                         width: '100%',
                         height: '100%',
@@ -219,7 +219,7 @@ const SignatureOverlay: React.FC<Props> = ({
                             data-role="remove-btn"
                             onClick={remove}
                             onPointerDown={(e) => e.stopPropagation()}
-                            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full w-7 h-7 flex items-center justify-center text-sm shadow-md text-red-500 hover:bg-red-50 font-bold"
+                            className="absolute -top-3 -right-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-white/10 rounded-full w-7 h-7 flex items-center justify-center text-sm shadow-md text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 font-bold transition-colors"
                             title="Remove"
                             style={{ zIndex: 120, touchAction: 'none' }}
                         >
@@ -229,6 +229,7 @@ const SignatureOverlay: React.FC<Props> = ({
                         {/* resize handle bottom-right */}
                         <div
                             data-role="resize-handle"
+                            className="bg-white dark:bg-neutral-800 border border-slate-300 dark:border-white/20 transition-colors"
                             style={{
                                 position: 'absolute',
                                 right: -8,
@@ -236,8 +237,6 @@ const SignatureOverlay: React.FC<Props> = ({
                                 width: 18,
                                 height: 18,
                                 borderRadius: 3,
-                                background: '#fff',
-                                border: '1px solid #cbd5e1',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -245,7 +244,7 @@ const SignatureOverlay: React.FC<Props> = ({
                                 zIndex: 120
                             }}
                         >
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-500 dark:text-slate-400">
                                 <path d="M3 21 L21 3" />
                             </svg>
                         </div>

@@ -2,3 +2,30 @@
 
 /* Allow manual dark mode toggling */
 @custom-variant dark (&:is(.dark *));
+
+/* Custom Scrollbar float and thumb theme */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 0px; /* Hide vertical scrollbar entirely */
+    height: 14px; /* Floating horizontal scrollbar */
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 8px;
+    margin: 0 10px; /* Floating look */
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+    background-clip: padding-box;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(38, 38, 38, 0.8); /* neutral-800 equivalent */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(64, 64, 64, 0.8); /* neutral-700 equivalent */
+}

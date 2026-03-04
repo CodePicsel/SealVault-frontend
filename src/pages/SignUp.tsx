@@ -41,7 +41,7 @@ export const SignUp: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#f8fbf9] dark:bg-neutral-900 bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[24px_24px] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
             <div className="w-full max-w-md mx-auto">
-                <Header title={<span className="text-3xl font-bold tracking-tight text-gray-800">SealVault</span>} subtitle="Join Us" variant="auth" />
+                <Header title={<span className="text-3xl sm:text-4xl text-[#2c4c3b] dark:text-teal-50 font-extrabold tracking-tighter transition-colors duration-700 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">SealVault</span>} subtitle="Join Us" variant="auth" />
                 <div className="p-6 sm:p-8 bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 shadow-2xl mt-4 transition-colors duration-300">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Create account</h2>
 

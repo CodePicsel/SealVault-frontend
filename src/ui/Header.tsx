@@ -1,7 +1,7 @@
 // src/ui/Header.tsx
 import React from 'react';
 
-export const Header: React.FC<{ title?: React.ReactNode; subtitle?: string; actions?: React.ReactNode; variant?: 'default' | 'auth' }> = ({ title = <><span className="text-3xl font-bold tracking-tight text-gray-800 dark:text-white transition-colors duration-300">SealValut</span></>, subtitle, actions, variant = 'default' }) => {
+export const Header: React.FC<{ title?: React.ReactNode; subtitle?: string; actions?: React.ReactNode; variant?: 'default' | 'auth' }> = ({ title = <><span className="text-3xl font-bold tracking-tight text-gray-800 dark:text-teal-50 transition-colors duration-300">SealVault</span></>, subtitle, actions, variant = 'default' }) => {
     const toggleDarkMode = () => {
         document.documentElement.classList.toggle('dark');
     };

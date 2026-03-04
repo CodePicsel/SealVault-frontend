@@ -50,11 +50,11 @@ export const UploadButton: React.FC<Props> = ({ onUploaded, maxSizeBytes = 10 * 
     };
 
     return (
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col w-full sm:items-end">
             <input ref={inputRef} type="file" accept="application/pdf" className="hidden" onChange={handle} />
-            <Button onClick={openPicker} disabled={uploading}>{uploading ? 'Uploading…' : 'Upload PDF'}</Button>
-            {progress != null && <div className="w-48 mt-2"><div className="h-2 bg-gray-200 rounded"><div style={{ width: `${progress}%` }} className="h-2 bg-teal-500 rounded" /></div><div className="text-sm text-gray-500 mt-1">{progress}%</div></div>}
-            {err && <div className="text-sm text-red-500 mt-1">{err}</div>}
+            <Button className="w-full sm:w-auto whitespace-nowrap" onClick={openPicker} disabled={uploading}>{uploading ? 'Uploading…' : 'Upload PDF'}</Button>
+            {progress != null && <div className="w-full sm:w-48 mt-2"><div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded"><div style={{ width: `${progress}%` }} className="h-2 bg-teal-500 dark:bg-teal-400 rounded" /></div><div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{progress}%</div></div>}
+            {err && <div className="text-sm text-red-500 dark:text-red-400 mt-1">{err}</div>}
         </div>
     );
 };

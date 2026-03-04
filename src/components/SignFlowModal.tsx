@@ -171,19 +171,19 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-slate-900/5" onClick={onClose} />
-            <div className="relative z-10 w-[90vw] max-w-3xl bg-white/20 backdrop-blur-md border border-white/60 shadow-2xl rounded-2xl p-6">
+            <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/60 transition-colors duration-300" onClick={onClose} />
+            <div className="relative z-10 w-[90vw] max-w-3xl bg-white/20 dark:bg-neutral-800/80 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-2xl rounded-2xl p-6 transition-colors duration-300">
                 {step === 1 && (
                     <>
-                        <h3 className="text-xl font-semibold mb-4 text-gray-800">Who will sign this document?</h3>
+                        <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Who will sign this document?</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button onClick={() => openStep2('me')} className="p-6 bg-white/40 border border-white/50 backdrop-blur-sm shadow-sm hover:bg-white/60 transition-colors rounded-xl text-left">
-                                <div className="text-lg font-medium text-gray-800">Only me</div>
-                                <div className="text-sm text-gray-500 mt-1">Sign this document yourself</div>
+                            <button onClick={() => openStep2('me')} className="p-6 bg-white/40 dark:bg-neutral-700/60 border border-white/50 dark:border-white/10 backdrop-blur-sm shadow-sm hover:bg-white/60 dark:hover:bg-neutral-600/60 transition-colors rounded-xl text-left">
+                                <div className="text-lg font-medium text-gray-800 dark:text-gray-100">Only me</div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sign this document yourself</div>
                             </button>
-                            <button onClick={() => openStep2('several')} className="p-6 bg-white/40 border border-white/50 backdrop-blur-sm shadow-sm hover:bg-white/60 transition-colors rounded-xl text-left">
-                                <div className="text-lg font-medium text-gray-800">Several people</div>
-                                <div className="text-sm text-gray-500 mt-1">Invite others to sign</div>
+                            <button onClick={() => openStep2('several')} className="p-6 bg-white/40 dark:bg-neutral-700/60 border border-white/50 dark:border-white/10 backdrop-blur-sm shadow-sm hover:bg-white/60 dark:hover:bg-neutral-600/60 transition-colors rounded-xl text-left">
+                                <div className="text-lg font-medium text-gray-800 dark:text-gray-100">Several people</div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Invite others to sign</div>
                             </button>
                         </div>
                         <div className="mt-6 flex justify-end gap-2">
@@ -195,7 +195,7 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
                 {step === 2 && (
                     <>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
-                            <h3 className="text-xl font-semibold text-gray-800">Create or choose a signature</h3>
+                            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Create or choose a signature</h3>
                             <div className="flex gap-2">
                                 <Button variant="ghost" size="sm" onClick={() => { setStep(1); setSelectedDataUrl(null); }}>Back</Button>
                                 <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
@@ -213,11 +213,11 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
                         <div>
                             {activeTab === 'presets' && (
                                 <div>
-                                    <div className="mb-2 text-sm text-gray-600">Click a preset to select it</div>
+                                    <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Click a preset to select it</div>
 
                                     <div className="flex flex-col sm:flex-row gap-2 mb-3">
                                         <input
-                                            className="border border-white/50 bg-white/40 backdrop-blur-sm p-2 rounded-xl flex-1 focus:outline-none focus:ring-2 focus:ring-[#a3f7b5] text-gray-800 placeholder-gray-500"
+                                            className="border border-white/50 dark:border-white/10 bg-white/40 dark:bg-neutral-800/60 backdrop-blur-sm p-2 rounded-xl flex-1 focus:outline-none focus:ring-2 focus:ring-[#a3f7b5] dark:focus:ring-teal-500 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                                             placeholder="Enter your name to add preset (e.g. Shashank Vijay Bankar)"
                                             value={nameInput}
                                             onChange={(e) => setNameInput(e.target.value)}
@@ -230,9 +230,9 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
                                             <div
                                                 key={p.id}
                                                 onClick={() => handlePresetClick(p)}
-                                                className="p-3 bg-white/40 border border-white/50 backdrop-blur-sm rounded-xl cursor-pointer min-w-[140px] shrink-0 hover:bg-white/60 transition-colors shadow-sm"
+                                                className="p-3 bg-white/40 dark:bg-neutral-700/60 border border-white/50 dark:border-white/10 backdrop-blur-sm rounded-xl cursor-pointer min-w-[140px] shrink-0 hover:bg-white/60 dark:hover:bg-neutral-600/60 transition-colors shadow-sm"
                                             >
-                                                <div style={{ fontFamily: 'cursive', fontSize: 18, marginBottom: 8 }} className="text-gray-800">{p.label}</div>
+                                                <div style={{ fontFamily: 'cursive', fontSize: 18, marginBottom: 8 }} className="text-gray-800 dark:text-gray-200">{p.label}</div>
                                                 <img src={p.dataUrl} alt={p.label} style={{ maxWidth: 200, maxHeight: 72 }} />
                                             </div>
                                         ))}
@@ -242,26 +242,26 @@ const SignFlowModal: React.FC<Props> = ({ open, file, onClose }) => {
 
                             {activeTab === 'draw' && (
                                 <div>
-                                    <div className="mb-2 text-sm text-gray-600">Draw your signature below, then click "Use signature"</div>
+                                    <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Draw your signature below, then click "Use signature"</div>
                                     <SignatureCanvas onSave={onCanvasSave} />
                                 </div>
                             )}
 
                             {activeTab === 'upload' && (
                                 <div>
-                                    <div className="mb-2 text-sm text-gray-600">Upload an image file (PNG/JPG) — transparent background recommended</div>
-                                    <input ref={fileInputRef} type="file" accept="image/*" onChange={onFileInputChange} />
+                                    <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Upload an image file (PNG/JPG) — transparent background recommended</div>
+                                    <input ref={fileInputRef} type="file" accept="image/*" onChange={onFileInputChange} className="dark:text-gray-200" />
                                 </div>
                             )}
                         </div>
 
                         <div className="mt-4">
-                            <div className="mb-2 text-sm text-gray-600">Preview</div>
-                            <div className="border p-4 min-h-[104px] flex items-center justify-center bg-white">
+                            <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Preview</div>
+                            <div className="border border-gray-200 dark:border-neutral-700 p-4 min-h-[104px] flex items-center justify-center bg-white dark:bg-neutral-800 rounded-xl">
                                 {selectedDataUrl ? (
-                                    <img src={selectedDataUrl} alt="selected signature" style={{ maxWidth: '100%', maxHeight: 120 }} />
+                                    <img src={selectedDataUrl} alt="selected signature" style={{ maxWidth: '100%', maxHeight: 120, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} className="dark:invert dark:opacity-90" />
                                 ) : (
-                                    <div className="text-sm text-gray-400">No signature selected</div>
+                                    <div className="text-sm text-gray-400 dark:text-gray-500">No signature selected</div>
                                 )}
                             </div>
                         </div>

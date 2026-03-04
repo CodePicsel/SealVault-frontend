@@ -14,18 +14,18 @@ export const FileTable: React.FC<Props> = ({ files, onPreview, onSign }) => {
     return (
         <div className="flex flex-col gap-3">
             {files.length === 0 && (
-                <div className="p-8 text-center text-gray-500 bg-white/20 backdrop-blur-md rounded-2xl border border-white/60 shadow-2xl">
+                <div className="p-8 text-center text-gray-500 dark:text-gray-400 bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 shadow-2xl transition-colors duration-300">
                     No files available.
                 </div>
             )}
             {files.map((f) => (
-                <div key={f._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-3 bg-white/40 backdrop-blur-sm border border-white/60 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/60 transition-all gap-4 sm:gap-0">
-                    <div className="flex-1 text-gray-700 font-semibold text-sm truncate px-0 sm:px-4 w-full sm:w-auto text-center sm:text-left">{f.originalName}</div>
+                <div key={f._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-3 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-sm border border-white/60 dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/60 dark:hover:bg-neutral-700/60 transition-all gap-4 sm:gap-0">
+                    <div className="flex-1 text-gray-700 dark:text-gray-200 font-semibold text-sm truncate px-0 sm:px-4 w-full sm:w-auto text-center sm:text-left">{f.originalName}</div>
 
                     <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-0 w-full sm:w-auto">
-                        <div className="w-auto sm:w-24 text-gray-600 text-center font-semibold text-sm shrink-0">{(f.size / 1024).toFixed(1)} KB</div>
-                        <div className="hidden sm:block w-px h-4 bg-gray-300 mx-2"></div>
-                        <div className="w-auto sm:w-32 text-gray-600 text-center font-semibold text-sm shrink-0">{new Date(f.createdAt).toLocaleDateString()}</div>
+                        <div className="w-auto sm:w-24 text-gray-600 dark:text-gray-400 text-center font-semibold text-sm shrink-0">{(f.size / 1024).toFixed(1)} KB</div>
+                        <div className="hidden sm:block w-px h-4 bg-gray-300 dark:bg-neutral-600 mx-2"></div>
+                        <div className="w-auto sm:w-32 text-gray-600 dark:text-gray-400 text-center font-semibold text-sm shrink-0">{new Date(f.createdAt).toLocaleDateString()}</div>
                     </div>
 
                     <div className="flex items-center justify-center sm:justify-end gap-3 shrink-0 sm:ml-4 sm:pr-1 w-full sm:w-auto">

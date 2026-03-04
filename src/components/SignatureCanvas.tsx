@@ -70,6 +70,7 @@ const SignatureCanvas: React.FC<Props> = ({ width = 600, height = 160, onSave })
             <canvas
                 ref={canvasRef}
                 style={{ border: '1px solid #e5e7eb', background: 'transparent', touchAction: 'none' }}
+                className="dark:border-neutral-700 dark:bg-white/5 dark:invert dark:opacity-90 rounded-xl"
                 onMouseDown={start}
                 onMouseMove={move}
                 onMouseUp={end}
@@ -79,8 +80,8 @@ const SignatureCanvas: React.FC<Props> = ({ width = 600, height = 160, onSave })
                 onTouchEnd={end}
             />
             <div className="flex gap-2 mt-2">
-                <button className="px-3 py-1 bg-white/40 backdrop-blur-md border border-white/60 text-teal-800 hover:bg-white/70 hover:shadow-lg hover:-translate-y-0.5 rounded-xl font-medium transition-all" onClick={clear}>Clear</button>
-                <button className="px-3 py-1 bg-linear-to-r from-[#a3f7b5]/80 to-[#80eb9f]/80 backdrop-blur-md border border-white/60 text-teal-950 hover:from-[#a3f7b5] hover:to-[#80eb9f] hover:shadow-[0_8px_20px_rgba(163,247,181,0.4)] hover:-translate-y-0.5 rounded-xl font-medium transition-all" onClick={save}>Use signature</button>
+                <button className="px-3 py-1 bg-white/40 dark:bg-neutral-800/60 backdrop-blur-md border border-white/60 dark:border-white/10 text-teal-800 dark:text-teal-100 hover:bg-white/70 dark:hover:bg-neutral-700/60 hover:shadow-lg hover:-translate-y-0.5 rounded-xl font-medium transition-all" onClick={clear}>Clear</button>
+                <button className="px-3 py-1 bg-linear-to-r from-[#a3f7b5]/80 to-[#80eb9f]/80 dark:from-teal-500/80 dark:to-teal-400/80 backdrop-blur-md border border-white/60 dark:border-white/10 text-teal-950 dark:text-teal-950 hover:from-[#a3f7b5] hover:to-[#80eb9f] dark:hover:from-teal-400 dark:hover:to-teal-300 hover:shadow-[0_8px_20px_rgba(163,247,181,0.4)] dark:hover:shadow-[0_8px_20px_rgba(45,212,191,0.3)] hover:-translate-y-0.5 rounded-xl font-medium transition-all" onClick={save}>Use signature</button>
             </div>
         </div>
     );
