@@ -30,10 +30,12 @@ export const Dashboard: React.FC = () => {
     // Tabs state
     const [activeTab, setActiveTab] = useState('uploads');
 
+    const [hasPendingActions, setHasPendingActions] = useState(false);
+
     const tabs: TabItem[] = [
         { id: 'uploads', label: 'Uploads' },
         { id: 'profile', label: 'Profile' },
-        { id: 'activities', label: 'Activities' },
+        { id: 'activities', label: 'Activities', hasNotification: hasPendingActions },
     ];
 
     const fetchFiles = async () => {
@@ -42,6 +44,12 @@ export const Dashboard: React.FC = () => {
         try {
             const resp = await api.get<FileDoc[]>('/api/uploads');
             setFiles(resp.data);
+
+            // Check for notifications
+            const assignedResp = await api.get('/api/sign-requests/assigned');
+            const assigned = assignedResp.data.assigned || [];
+            const hasPending = assigned.some((req: any) => req.isMyTurn);
+            setHasPendingActions(hasPending);
         } catch (err: any) {
             setError(err?.response?.data?.message ?? 'Could not load files');
         } finally {
@@ -67,7 +75,7 @@ export const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fbf9] dark:bg-neutral-900 bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[24px_24px] p-6 lg:p-8 transition-colors duration-300">
+        <div className="min-h-screen bg-app-pattern p-6 lg:p-8">
             <div className="max-w-6xl mx-auto">
                 <Header
                     subtitle={`logged in as ${user?.email ?? '—'}`}
@@ -99,9 +107,9 @@ export const Dashboard: React.FC = () => {
 
                 {activeTab === 'uploads' && (
                     loading ? (
-                        <div className="bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 p-12 text-center text-gray-500 dark:text-gray-400 shadow-2xl transition-colors duration-300">Loading…</div>
+                        <div className="glass-panel rounded-2xl p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>
                     ) : (
-                        <div className="bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 shadow-2xl p-6 transition-colors duration-300">
+                        <div className="glass-panel rounded-2xl p-6">
                             <FileTable
                                 files={files}
                                 onDownloadError={setError}

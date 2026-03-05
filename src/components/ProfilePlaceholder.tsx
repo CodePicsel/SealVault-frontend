@@ -14,11 +14,43 @@ export const ProfilePlaceholder: React.FC<Props> = ({ email }) => {
     );
 
     useEffect(() => {
+        // Observer for class mutations (e.g., if toggled elsewhere in DOM)
         const observer = new MutationObserver(() => {
             setIsDark(document.documentElement.classList.contains('dark'));
         });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        return () => observer.disconnect();
+
+        // Storage listener to sync across tabs
+        const handleStorage = (e: StorageEvent) => {
+            if (e.key === 'theme') {
+                if (e.newValue === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+        };
+        window.addEventListener('storage', handleStorage);
+
+        // System preference listener
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleMedia = (e: MediaQueryListEvent) => {
+            // Only auto-switch if user hasn't explicitly set a preference
+            if (!localStorage.getItem('theme')) {
+                if (e.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+        };
+        mediaQuery.addEventListener('change', handleMedia);
+
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('storage', handleStorage);
+            mediaQuery.removeEventListener('change', handleMedia);
+        };
     }, []);
 
     const toggleDark = () => {

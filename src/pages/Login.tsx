@@ -20,7 +20,9 @@ export const Login: React.FC = () => {
     const { login } = useAuth();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const from = location.state?.from?.pathname + (location.state?.from?.search || '') || '/';
+    const from = location.state?.from?.pathname
+        ? location.state.from.pathname + (location.state.from.search || '')
+        : '/';
 
     const {
         control,

@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@layer utilities {
+    .bg-app-pattern {
+        @apply bg-[#f8fbf9] dark:bg-neutral-900 bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] overflow-hidden transition-colors duration-300;
+    }
+    
+    .glass-panel {
+        @apply bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-2xl transition-colors duration-300;
+    }
+}
+
 /* Allow manual dark mode toggling */
 @custom-variant dark (&:is(.dark *));
 

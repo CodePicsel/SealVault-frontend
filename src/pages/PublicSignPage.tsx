@@ -248,9 +248,8 @@ export const PublicSignPage: React.FC = () => {
     const pdfUrl = requestData.file.url;
 
     return (
-        <div className="min-h-screen bg-[#f8fbf9] dark:bg-neutral-900 bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[24px_24px] p-6 lg:p-8 flex flex-col items-center">
-
-            <div className="max-w-4xl w-full bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 p-6 shadow-2xl transition-colors duration-300 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="min-h-screen bg-app-pattern flex flex-col items-center py-6 px-4">
+            <div className="w-full max-w-4xl glass-panel rounded-2xl p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                     <h2 className="text-xl font-bold text-teal-950 dark:text-teal-50">{requestData.title}</h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{requestData.message}</p>
@@ -277,10 +276,10 @@ export const PublicSignPage: React.FC = () => {
                         <Button variant="ghost" size="sm" onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))} disabled={currentPage >= numPages}>Next</Button>
                     </div>
                 </div>
-                <div className="flex-1 overflow-auto custom-scrollbar relative bg-gray-100/50 dark:bg-black/20 p-4 rounded-xl flex justify-center">
+                <div className="flex-1 overflow-auto custom-scrollbar relative bg-gray-100/50 dark:bg-black/20 p-4 rounded-xl flex flex-col items-center">
                     <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess}>
-                        <div ref={pageDomRef as any} className="relative shadow-xl mx-auto bg-white dark:opacity-90 transition-opacity w-max min-w-[320px]">
-                            <Page pageNumber={currentPage} width={pageBox ? Math.max(pageBox.width, 800) : 800} renderAnnotationLayer={false} renderTextLayer={false} />
+                        <div ref={pageDomRef as any} className="relative shadow-xl mx-auto bg-white dark:opacity-90 transition-opacity w-full max-w-full">
+                            <Page devicePixelRatio={Math.min(window.devicePixelRatio || 1, 1.5)} pageNumber={currentPage} width={pageBox ? Math.max(pageBox.width, Math.min(window.innerWidth - 64, 800)) : Math.min(window.innerWidth - 64, 800)} renderAnnotationLayer={false} renderTextLayer={false} />
 
                             {pageBox && myFields.map(f => {
                                 if (f.page !== currentPage) return null;

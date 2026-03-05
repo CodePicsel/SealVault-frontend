@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 26.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFFFFF;stroke:#000000;stroke-width:3;stroke-miterlimit:10;}
+	.st1{display:none;fill:#FFFFFF;stroke:#000000;stroke-width:3;stroke-miterlimit:10;}
+	.st2{font-family:'FreestyleScript-Regular';}
+	.st3{font-size:187.3501px;}
+	.st4{letter-spacing:1.89;}
+	.st5{font-family:'Impact';}
+	.st6{font-size:125px;}
+	.st7{letter-spacing:-3;}
+</style>
+<path class="st0" d="M110.5,43.5v424H70.22c-5.37,0-9.72-4.35-9.72-9.72V53.22c0-5.37,4.35-9.72,9.72-9.72H110.5z"/>
+<path class="st1" d="M402.5,39.5v424h-40.28c-5.37,0-9.72-4.35-9.72-9.72V49.22c0-5.37,4.35-9.72,9.72-9.72H402.5z"/>
+<path class="st0" d="M352.5,294.79c0-5.55,2.84-9.66,6-14.29c5.8-8.51,6-12,11-19c1.64-2.3,11.25-7.42,16-9c3-1,7-1,9,2
+	c2.93,4.4,8,4.51,8,9c0,5-0.02,29.78,0,31.29v164.48c0,4.54-3.68,8.22-8.22,8.22H352.5V294.79z"/>
+<path class="st0" d="M60.5,83.52V53.48c0-5.51,4.47-9.98,9.98-9.98h246.54c5.51,0,9.98,4.47,9.98,9.98v30.04
+	c0,5.51-4.47,9.98-10.98,9.98H109"/>
+<path class="st0" d="M309.5,43.5c3,0,6.59-0.18,9.51,0.04c2.49,0.19,4.82,1.29,6.58,3.06l62.8,54.19c2.9,2.9,2.1,8.41-1.8,12.31
+	l-21.24,21.24c-3.9,3.9-9.41,4.7-12.84,1.27L303.5,93.5"/>
+<path class="st0" d="M402.5,419l0.5,38.64c0,5.44-4.41,9.86-9.86,9.86H70.36c-5.44,0-9.86-4.41-9.86-9.86l0-38.64"/>
+<line class="st0" x1="109" y1="417.5" x2="352.5" y2="417.5"/>
+<text transform="matrix(1.0596 0 0 1 237.5078 259.708)" class="st2 st3 st4">Sign</text>
+<path class="st1" d="M373.72,229.5"/>
+<text transform="matrix(1 0 0 1 127.8086 397.4473)" class="st5 st6 st7">PDF</text>
+</svg>

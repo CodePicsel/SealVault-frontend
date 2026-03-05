@@ -212,14 +212,14 @@ const SignPage: React.FC = () => {
     // place a signature visually on the page (px positions)
     const startPlacing = useCallback((dataUrl: string, boxOverride?: { width: number; height: number } | null) => {
         const box = boxOverride || pageBox;
-        if (!box) {
+        if (!box || box.height < 100) {
             setPendingSignatureUrl(dataUrl);
             return;
         }
 
-        const initialWidth = Math.round(box.width * 0.30);
+        const initialWidth = Math.round(box.width * 0.40);
         const left = Math.round((box.width - initialWidth) / 2);
-        const top = Math.round((box.height - (initialWidth * 0.3)) / 2);
+        const top = Math.round((box.height - (initialWidth * 0.40)) / 2);
 
         const newId = `sig-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
         const newSig: PlacedSignature = {
@@ -252,12 +252,12 @@ const SignPage: React.FC = () => {
     // place a signer placeholder visually on the page
     const startPlacingPlaceholder = useCallback((signerId: string, email: string, boxOverride?: { width: number; height: number } | null) => {
         const box = boxOverride || pageBox;
-        if (!box) {
+        if (!box || box.height < 100) {
             setPendingSignerPlaceholder({ signerId, email });
             return;
         }
 
-        const initialWidth = Math.round(box.width * 0.22);
+        const initialWidth = Math.round(box.width * 0.35);
         const initialHeight = Math.round(box.height * 0.08);
         const left = Math.round((box.width - initialWidth) / 2);
         const top = Math.round((box.height - initialHeight) / 2);
@@ -284,11 +284,11 @@ const SignPage: React.FC = () => {
 
     // auto-place pending queued signature once measurements ready
     useEffect(() => {
-        if (pendingSignatureUrl && pageBox && !isPrepareMode) {
+        if (pendingSignatureUrl && pageBox && pageBox.height >= 100 && !isPrepareMode) {
             startPlacing(pendingSignatureUrl, pageBox);
             setPendingSignatureUrl(null);
         }
-        if (pendingSignerPlaceholder && pageBox && isPrepareMode) {
+        if (pendingSignerPlaceholder && pageBox && pageBox.height >= 100 && isPrepareMode) {
             startPlacingPlaceholder(pendingSignerPlaceholder.signerId, pendingSignerPlaceholder.email, pageBox);
             setPendingSignerPlaceholder(null);
         }
@@ -447,9 +447,9 @@ const SignPage: React.FC = () => {
                     const dropY = clientY - rect.top;
 
                     const boxWidth = pageBox.width;
-                    const initialWidth = Math.round(boxWidth * 0.3);
+                    const initialWidth = Math.round(boxWidth * 0.40);
                     const left = Math.round(dropX - initialWidth / 2);
-                    const top = Math.round(dropY - (initialWidth * 0.3) / 2);
+                    const top = Math.round(dropY - (initialWidth * 0.40) / 2);
                     const newId = `sig-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
                     const newSigId = urlToIdCache[dataUrl] || null;
 
@@ -476,7 +476,7 @@ const SignPage: React.FC = () => {
                     const dropY = clientY - rect.top;
 
                     const boxWidth = pageBox.width;
-                    const initialWidth = Math.round(boxWidth * 0.22);
+                    const initialWidth = Math.round(boxWidth * 0.35);
                     const initialHeight = Math.round(pageBox.height * 0.08);
                     const left = Math.round(dropX - initialWidth / 2);
                     const top = Math.round(dropY - initialHeight / 2);
@@ -507,9 +507,9 @@ const SignPage: React.FC = () => {
         const rect = pageDomRef.current.getBoundingClientRect();
         const dropX = e.clientX - rect.left;
         const dropY = e.clientY - rect.top;
-        const initialWidth = Math.round(pageBox.width * 0.3);
+        const initialWidth = Math.round(pageBox.width * 0.40);
         const left = Math.round(dropX - initialWidth / 2);
-        const top = Math.round(dropY - (initialWidth * 0.3) / 2);
+        const top = Math.round(dropY - (initialWidth * 0.40) / 2);
         const newId = `sig-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
         const newSigId = urlToIdCache[dataUrl] || null;
 
@@ -528,52 +528,13 @@ const SignPage: React.FC = () => {
         }
     };
 
-    const pagesWithSigs = new Set(placed.map(s => s.page));
-
     return (
-        <div className="h-dvh flex flex-col md:flex-row bg-[#f8fbf9] dark:bg-neutral-900 bg-[linear-gradient(to_right,#e5f5eb_1px,transparent_1px),linear-gradient(to_bottom,#e5f5eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[24px_24px] overflow-hidden transition-colors duration-300">
-            <aside className="custom-scrollbar w-full md:w-32 shrink-0 border-b md:border-b-0 md:border-r border-white/60 dark:border-white/10 bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md p-4 overflow-x-auto md:overflow-y-auto z-10 shadow-sm transition-colors duration-300" style={{ touchAction: 'pan-x pan-y' }}>
-                {!pdfUrl && (
-                    <div className="flex flex-row md:flex-col gap-5 items-center pb-2 md:pb-0 pr-2 md:pr-0 w-max md:w-full">
-                        {Array.from({ length: numPages || 1 }, (_, idx) => {
-                            const pg = idx + 1;
-                            const has = pagesWithSigs.has(pg);
-                            return (
-                                <div key={pg} className={`cursor-pointer p-1.5 rounded-xl transition-all shrink-0 relative ${currentPage === pg ? 'ring-2 ring-[#a3f7b5] dark:ring-teal-500 bg-white/40 dark:bg-neutral-700/60' : 'hover:bg-white/30 dark:hover:bg-neutral-700/40'}`} onClick={() => setCurrentPage(pg)}>
-                                    <div className="shadow-sm rounded-lg overflow-hidden border border-white/60 dark:border-white/10 w-[60px] h-[80px] bg-white/50 dark:bg-neutral-800 backdrop-blur-sm flex items-center justify-center text-sm font-medium text-teal-900 dark:text-teal-100">
-                                        {pg}
-                                    </div>
-                                    {has && <div className="absolute -top-1.5 -right-1.5 bg-teal-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md z-20 border-2 border-[#f8fbf9] dark:border-neutral-800">✓</div>}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-                {pdfUrl && (
-                    <Document file={pdfUrl} className="flex flex-row md:flex-col gap-5 items-center pb-2 md:pb-0 pr-2 md:pr-0 w-max md:w-full">
-                        {Array.from({ length: numPages || 1 }, (_, idx) => {
-                            const pg = idx + 1;
-                            const has = pagesWithSigs.has(pg);
-                            return (
-                                <div key={pg} className={`cursor-pointer p-1.5 rounded-xl transition-all shrink-0 relative ${currentPage === pg ? 'ring-2 ring-[#a3f7b5] dark:ring-teal-500 bg-white/40 dark:bg-neutral-700/60 shadow-sm' : 'hover:bg-white/30 dark:hover:bg-neutral-700/40'}`} onClick={() => setCurrentPage(pg)}>
-                                    <div className="shadow-sm rounded-lg overflow-hidden border border-white/60 dark:border-white/10 w-[60px] h-[80px] bg-white dark:bg-neutral-800 flex items-center justify-center relative bg-clip-padding dark:opacity-90">
-                                        <Page pageNumber={pg} width={60} renderAnnotationLayer={false} renderTextLayer={false} className="pointer-events-none" />
-                                        <div className="absolute bottom-0 right-0 bg-black/40 dark:bg-black/60 text-white text-[9px] px-1 rounded-tl font-mono backdrop-blur-md">{pg}</div>
-                                    </div>
-                                    {has && <div className="absolute -top-1.5 -right-1.5 bg-teal-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md z-20 border-2 border-[#f8fbf9] dark:border-neutral-800">✓</div>}
-                                </div>
-                            );
-                        })}
-                    </Document>
-                )}
-            </aside>
-
+        <div className="h-dvh flex flex-col bg-app-pattern">
             <main className="flex-1 p-4 md:p-8 flex flex-col items-center pb-[120px] md:pb-8 min-h-0" onClick={() => setSelectedId(null)}>
-                <div className="w-full flex-1 max-h-full max-w-4xl bg-white/20 dark:bg-neutral-800/60 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 p-4 sm:p-6 shadow-2xl transition-colors duration-300 flex flex-col min-h-0">
+                <div className="w-full flex-1 max-h-full max-w-4xl glass-panel rounded-2xl p-4 sm:p-6 flex flex-col min-h-0">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0 shrink-0">
                         <div>
                             <h2 className="text-xl font-semibold text-teal-950 dark:text-teal-50">Signing workspace</h2>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Page {currentPage} / {numPages || '—'}</div>
                         </div>
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                             <Button variant="ghost" className="w-full sm:w-auto" onClick={() => navigate(-1)}>Back</Button>
@@ -583,21 +544,31 @@ const SignPage: React.FC = () => {
                         </div>
                     </div>
 
+                    <div className="flex flex-col sm:flex-row items-center justify-between mb-4 mt-2 bg-white/40 dark:bg-neutral-800/80 backdrop-blur-md rounded-xl p-3 shadow-sm border border-white/60 dark:border-white/10 w-full max-w-lg mx-auto mb-4">
+                        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 w-full sm:w-auto text-center sm:text-left">
+                            Page {currentPage} of {numPages || '—'}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
+                            <Button variant="ghost" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1 || loading}>Previous</Button>
+                            <Button variant="ghost" size="sm" onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))} disabled={currentPage >= numPages || loading}>Next</Button>
+                        </div>
+                    </div>
+
                     <div className="flex-1 relative overflow-hidden flex flex-col min-h-0">
                         {loading && <div className="text-gray-500 dark:text-gray-400">Loading…</div>}
                         {!loading && pdfUrl && (
-                            <div className="flex-1 overflow-auto custom-scrollbar pb-8 pt-2 px-2 w-full relative z-10">
+                            <div className="flex-1 overflow-auto custom-scrollbar pb-8 pt-2 px-2 w-full relative z-10 flex flex-col items-center">
                                 <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading={<div className="text-gray-500 dark:text-gray-400 py-4 text-center">Loading PDF…</div>}>
-                                    <div className="w-full min-w-fit flex justify-center">
+                                    <div className="w-full flex justify-center">
                                         <div
                                             ref={pageDomRef as any}
                                             id="pdf-page-wrapper"
                                             style={{ position: 'relative' }}
-                                            className="shadow-xl mx-auto bg-white dark:opacity-90 transition-opacity w-max min-w-[320px]"
+                                            className="shadow-xl mx-auto bg-white dark:opacity-90 transition-opacity max-w-full"
                                             onDragOver={(e) => e.preventDefault()}
                                             onDrop={onDropToPage}
                                         >
-                                            <Page pageNumber={currentPage} width={pageBox ? Math.max(pageBox.width, 800) : 800} renderAnnotationLayer={false} renderTextLayer={false} />
+                                            <Page devicePixelRatio={Math.min(window.devicePixelRatio || 1, 1.5)} pageNumber={currentPage} width={pageBox ? Math.max(pageBox.width, Math.min(window.innerWidth - 64, 800)) : Math.min(window.innerWidth - 64, 800)} renderAnnotationLayer={false} renderTextLayer={false} />
                                             {pageBox && placed.map((p) => (
                                                 p.page === currentPage ? (
                                                     <SignatureOverlay
