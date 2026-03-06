@@ -116,7 +116,7 @@ const SignedResult: React.FC = () => {
                         <Button
                             variant="primary"
                             className="bg-white/60 dark:bg-neutral-700/60 hover:bg-white dark:hover:bg-neutral-600/60 text-teal-900 dark:text-teal-100 border-teal-500/20 dark:border-white/10 shadow-[0_0_15px_-3px_rgba(45,212,191,0.3)] min-w-[40px] min-[460px]:min-w-[120px]"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/dashboard')}
                         >
                             <svg className="w-4 h-4 min-[460px]:mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                             <span className="hidden min-[460px]:inline">Dashboard</span>
