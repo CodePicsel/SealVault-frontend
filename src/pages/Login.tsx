@@ -22,7 +22,7 @@ export const Login: React.FC = () => {
 
     const from = location.state?.from?.pathname
         ? location.state.from.pathname + (location.state.from.search || '')
-        : '/';
+        : '/dashboard';
 
     const {
         control,
