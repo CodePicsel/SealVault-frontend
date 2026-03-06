@@ -113,7 +113,7 @@ export const SignUp: React.FC = () => {
                                 <span className="px-3 bg-transparent text-gray-600 dark:text-gray-400 font-medium transition-colors duration-300">Or continue with</span>
                             </div>
                         </div>
-                        <GoogleSignIn onSuccess={() => navigate('/')} />
+                        <GoogleSignIn onSuccess={() => navigate('/dashboard')} />
                     </div>
                 </div>
             </div>

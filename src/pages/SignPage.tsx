@@ -332,7 +332,7 @@ const SignPage: React.FC = () => {
                     fileId: id,
                     title: 'Document for signing',
                     message: 'Please review and sign this document.',
-                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+                    expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days
                     signers: signers.map(s => ({ name: s.name, email: s.email, order: s.order })),
                     fields
                 };
@@ -425,7 +425,9 @@ const SignPage: React.FC = () => {
             }
         } catch (err: any) {
             console.error('Apply flow error', err);
-            alert(err?.response?.data?.message || err?.message || 'Apply failed');
+            const data = err?.response?.data;
+            const fullErr = data ? JSON.stringify(data, null, 2) : err?.message;
+            alert(`Error Output:\n${fullErr}`);
         } finally {
             setLoading(false);
         }
@@ -529,67 +531,70 @@ const SignPage: React.FC = () => {
     };
 
     return (
-        <div className="h-dvh flex flex-col bg-app-pattern">
-            <main className="flex-1 p-4 md:p-8 flex flex-col items-center pb-[120px] md:pb-8 min-h-0" onClick={() => setSelectedId(null)}>
-                <div className="w-full flex-1 max-h-full max-w-4xl glass-panel rounded-2xl p-4 sm:p-6 flex flex-col min-h-0">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0 shrink-0">
-                        <div>
-                            <h2 className="text-xl font-semibold text-teal-950 dark:text-teal-50">Signing workspace</h2>
+        <div className="h-dvh flex flex-col md:flex-row bg-app-pattern">
+            <main className="flex-1 p-2 md:p-6 flex flex-col items-center pb-[180px] md:pb-6 min-h-0 overflow-hidden" onClick={() => setSelectedId(null)}>
+                <div className="w-full h-full max-w-5xl glass-panel rounded-2xl p-3 sm:p-6 flex flex-col min-h-0">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3 sm:gap-0 shrink-0 border-b border-white/60 dark:border-white/10 pb-3 sm:pb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                            <h2 className="text-lg sm:text-xl font-semibold text-teal-950 dark:text-teal-50">Signing workspace</h2>
+                            {pdfUrl && numPages > 0 && (
+                                <div className="flex items-center gap-2 bg-white/40 dark:bg-neutral-800/80 backdrop-blur-md rounded-lg px-2 py-1 shadow-sm border border-white/60 dark:border-white/10 w-fit">
+                                    <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        Page {currentPage} / {numPages}
+                                    </span>
+                                    <div className="flex items-center gap-1 border-l border-white/60 dark:border-white/10 pl-2">
+                                        <Button variant="ghost" className="h-8 w-8 rounded-md p-0 flex items-center justify-center" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1 || loading} title="Previous Page">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19V5M5 12l7-7 7 7" /></svg>
+                                        </Button>
+                                        <Button variant="ghost" className="h-8 w-8 rounded-md p-0 flex items-center justify-center" onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))} disabled={currentPage >= numPages || loading} title="Next Page">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 5v14M5 12l7 7 7-7" /></svg>
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                            <Button variant="ghost" className="w-full sm:w-auto" onClick={() => navigate(-1)}>Back</Button>
-                            <Button variant="primary" className="w-full sm:w-auto" onClick={onApply} disabled={loading}>
-                                {loading ? 'Applying…' : isPrepareMode ? 'Send Request' : 'Apply'}
+                        <div className="flex gap-2 shrink-0 self-end sm:self-auto">
+                            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>Back</Button>
+                            <Button variant="primary" size="sm" onClick={onApply} disabled={loading}>
+                                {loading ? 'Applying…' : isPrepareMode ? 'Send' : 'Apply'}
                             </Button>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center justify-between mb-4 mt-2 bg-white/40 dark:bg-neutral-800/80 backdrop-blur-md rounded-xl p-3 shadow-sm border border-white/60 dark:border-white/10 w-full max-w-lg mx-auto mb-4">
-                        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 w-full sm:w-auto text-center sm:text-left">
-                            Page {currentPage} of {numPages || '—'}
-                        </div>
-                        <div className="flex items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
-                            <Button variant="ghost" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1 || loading}>Previous</Button>
-                            <Button variant="ghost" size="sm" onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))} disabled={currentPage >= numPages || loading}>Next</Button>
                         </div>
                     </div>
 
                     <div className="flex-1 relative overflow-hidden flex flex-col min-h-0">
                         {loading && <div className="text-gray-500 dark:text-gray-400">Loading…</div>}
                         {!loading && pdfUrl && (
-                            <div className="flex-1 overflow-auto custom-scrollbar pb-8 pt-2 px-2 w-full relative z-10 flex flex-col items-center">
-                                <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading={<div className="text-gray-500 dark:text-gray-400 py-4 text-center">Loading PDF…</div>}>
-                                    <div className="w-full flex justify-center">
-                                        <div
-                                            ref={pageDomRef as any}
-                                            id="pdf-page-wrapper"
-                                            style={{ position: 'relative' }}
-                                            className="shadow-xl mx-auto bg-white dark:opacity-90 transition-opacity max-w-full"
-                                            onDragOver={(e) => e.preventDefault()}
-                                            onDrop={onDropToPage}
-                                        >
-                                            <Page devicePixelRatio={Math.min(window.devicePixelRatio || 1, 1.5)} pageNumber={currentPage} width={pageBox ? Math.max(pageBox.width, Math.min(window.innerWidth - 64, 800)) : Math.min(window.innerWidth - 64, 800)} renderAnnotationLayer={false} renderTextLayer={false} />
-                                            {pageBox && placed.map((p) => (
-                                                p.page === currentPage ? (
-                                                    <SignatureOverlay
-                                                        key={p.id}
-                                                        id={p.id}
-                                                        dataUrl={p.dataUrl}
-                                                        type={p.type}
-                                                        placeholderLabel={p.placeholderLabel}
-                                                        pageBox={pageBox}
-                                                        initialLeft={p.left}
-                                                        initialTop={p.top}
-                                                        initialWidth={p.width}
-                                                        initialHeight={p.height}
-                                                        selected={selectedId === p.id}
-                                                        onSelect={setSelectedId}
-                                                        onUpdate={updatePlacement}
-                                                        onRemove={removePlacement}
-                                                    />
-                                                ) : null
-                                            ))}
-                                        </div>
+                            <div className="flex-1 overflow-auto custom-scrollbar w-full pb-8">
+                                <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading={<div className="text-gray-500 dark:text-gray-400 py-4 text-center">Loading PDF…</div>} className="flex flex-col items-center min-w-min">
+                                    <div
+                                        ref={pageDomRef as any}
+                                        id="pdf-page-wrapper"
+                                        style={{ position: 'relative' }}
+                                        className="shadow-xl mx-auto bg-white dark:opacity-90 transition-opacity w-fit min-w-[280px]"
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDrop={onDropToPage}
+                                    >
+                                        <Page devicePixelRatio={Math.min(window.devicePixelRatio || 1, 1.5)} pageNumber={currentPage} width={pageBox ? Math.max(pageBox.width, Math.min(window.innerWidth - 48, 800)) : Math.min(window.innerWidth - 48, 800)} renderAnnotationLayer={false} renderTextLayer={false} />
+                                        {pageBox && placed.map((p) => (
+                                            p.page === currentPage ? (
+                                                <SignatureOverlay
+                                                    key={p.id}
+                                                    id={p.id}
+                                                    dataUrl={p.dataUrl}
+                                                    type={p.type}
+                                                    placeholderLabel={p.placeholderLabel}
+                                                    pageBox={pageBox}
+                                                    initialLeft={p.left}
+                                                    initialTop={p.top}
+                                                    initialWidth={p.width}
+                                                    initialHeight={p.height}
+                                                    selected={selectedId === p.id}
+                                                    onSelect={setSelectedId}
+                                                    onUpdate={updatePlacement}
+                                                    onRemove={removePlacement}
+                                                />
+                                            ) : null
+                                        ))}
                                     </div>
                                 </Document>
                             </div>

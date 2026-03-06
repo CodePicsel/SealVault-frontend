@@ -233,21 +233,52 @@ export const ActivitiesPlaceholder: React.FC = () => {
                                 </div>
                                 {(() => {
                                     const file = files.find(f => (f._id || f.id) === selectedFileId);
-                                    if (file && file.signedVersions && file.signedVersions.length > 0) {
-                                        const latestSigned = file.signedVersions[file.signedVersions.length - 1];
-                                        return (
+                                    if (!file) return null;
+
+                                    const hasSignedVersion = Array.isArray(file.signedVersions) && file.signedVersions.length > 0;
+                                    const canOpenFinal = file.signingStatus === 'completed' || hasSignedVersion;
+                                    const latestSigned = hasSignedVersion ? file.signedVersions![file.signedVersions!.length - 1] : null;
+
+                                    return (
+                                        <div className="space-y-2">
                                             <Button
                                                 variant="primary"
                                                 className="w-full text-sm font-semibold"
-                                                onClick={() => {
-                                                    if (latestSigned.url) window.open(latestSigned.url, '_blank');
+                                                disabled={!canOpenFinal}
+                                                onClick={async () => {
+                                                    if (!canOpenFinal) return;
+
+                                                    const fileId = file._id || file.id;
+                                                    try {
+                                                        if (!fileId) throw new Error('Missing file id');
+                                                        const resp = await api.get(`/api/uploads/${fileId}/final-download`);
+                                                        const freshUrl = resp.data?.url;
+                                                        if (!freshUrl) throw new Error('No download URL returned');
+                                                        window.open(freshUrl, '_blank', 'noopener,noreferrer');
+                                                    } catch (err: any) {
+                                                        console.error('Failed to open final signed document', err);
+                                                        if (latestSigned?.url) {
+                                                            window.open(latestSigned.url, '_blank', 'noopener,noreferrer');
+                                                            return;
+                                                        }
+                                                        const status = err?.response?.status;
+                                                        if (status === 404) {
+                                                            alert('Final signed document is not ready yet.');
+                                                            return;
+                                                        }
+                                                        alert('Could not open final signed document right now. Please try again.');
+                                                    }
                                                 }}
                                             >
-                                                View Final Signed Document
+                                                {canOpenFinal ? 'View Final Signed Document' : 'Final Document Not Ready'}
                                             </Button>
-                                        );
-                                    }
-                                    return null;
+                                            {!canOpenFinal && (
+                                                <p className="text-xs text-gray-500">
+                                                    This becomes available after signing is completed.
+                                                </p>
+                                            )}
+                                        </div>
+                                    );
                                 })()}
                             </div>
 
