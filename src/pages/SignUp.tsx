@@ -32,7 +32,7 @@ export const SignUp: React.FC = () => {
                 password: values.password,
             });
             login(resp.data.token, resp.data.user);
-            navigate('/', { replace: true });
+            navigate('/dashboard', { replace: true });
         } catch (err: any) {
             const message = err?.response?.data?.message ?? 'Registration failed.';
             alert(message)
